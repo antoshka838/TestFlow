@@ -1,0 +1,80 @@
+/* TestResultCard.module.css */
+
+.card {
+  background-color: #ffffff;
+  border-radius: 15px;
+  border: 1px solid #DDE1E6;
+  padding: 24px;
+  margin-bottom: 24px;
+  font-family: 'Roboto', sans-serif;
+}
+
+.card h2{
+  margin: 0;
+}
+
+.info p {
+  margin: 4px 0;
+  font-size: 14px;
+}
+
+.info strong {
+  color: #2A292B;
+}
+
+.section {
+  margin-top: 20px;
+}
+
+.section h3 {
+  font-size: 16px;
+  margin-bottom: 12px;
+  color: #333333;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 4px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.table td:first-child {
+  font-weight: 500;
+  color: #2A292B;
+}
+
+.table td:last-child {
+  text-align: center;
+  font-weight: 600;
+  color: #555555;
+}
+
+p {
+  font-size: 14px;
+  color: #444444;
+}
+
+@media (max-width: 768px) {
+  .card {
+    padding: 16px;
+  }
+
+  .table td {
+    padding: 6px 8px;
+  }
+
+  .section h3 {
+    font-size: 14px;
+  }
+}

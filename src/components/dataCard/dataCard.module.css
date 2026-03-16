@@ -1,0 +1,27 @@
+.card{
+  border: 1px solid #C1C7CD;
+  border-radius: 15px;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  gap: 24px;
+}
+
+.cardContent{
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cardActions{
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.card p{
+  color: #21272A;
+  text-align: justify;
+}
