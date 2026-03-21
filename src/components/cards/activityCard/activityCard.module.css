@@ -1,0 +1,57 @@
+.cardContainer{
+  border: 1px solid #C1C7CD;
+  width: 100%;
+  padding: 12px;
+  border-radius: 15px;
+  box-sizing: border-box;
+}
+
+.chartRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  gap: 16px;
+}
+
+.chartWrapper {
+  position: relative;
+  width: 220px;
+  height: 220px;
+}
+
+.centerText {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-weight: bold;
+  text-align: center;
+  font-size: 1.5rem;
+  z-index: -1;
+}
+
+.stats {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.statItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.tooltip{
+  background: #fff;
+  border: 1px solid #ccc;
+  padding: 5px;
+  border-radius: 15px;
+}
+

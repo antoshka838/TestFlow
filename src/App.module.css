@@ -1,0 +1,14 @@
+.container{
+  max-width: 1440px;
+  width: 100%;
+  margin: auto;
+  display: flex;
+  height: 100dvh;
+}
+
+.mainContainer{
+  box-sizing: border-box;
+  flex: 1;
+  padding: 24px;
+  margin-left: 255px;
+}

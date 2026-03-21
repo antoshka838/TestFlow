@@ -1,0 +1,23 @@
+.btn{
+  font-size: 14px;
+  font-family: 'Roboto';
+  padding: 16px 12px;
+  background-color: #FFDA53;
+  color: #2A292B;
+  border: none;
+  border-radius: 15px;
+  font-weight: 600;
+  transition: transform 0.3s ease;
+  transform: scale(1);
+}
+
+.btn:hover{
+  transform: scale(1.1);
+}
+
+.btn:disabled {
+  background-color: #ddd;
+  color: #777;
+  transform: none;
+  cursor: not-allowed;
+}

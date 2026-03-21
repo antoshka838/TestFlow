@@ -1,0 +1,29 @@
+.search{
+  display: flex;
+  height: 48px;
+  border-bottom: 2px solid #C1C7CD;
+  box-sizing: border-box;
+  align-items: center;
+}
+
+.search input{
+  background-color: transparent;
+  border: none;
+  height: 100%;
+  box-sizing: border-box;
+  color: #697077;
+  font-size: 16px;
+  flex: 1;
+}
+
+.search input:focus{
+  outline: none;
+}
+
+.search button{
+  background-color: transparent;
+  color: #697077;
+  border: none;
+  width: 24px;
+  height: 24px;
+}
