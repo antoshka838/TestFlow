@@ -10,12 +10,12 @@ import { useNavigate } from "react-router";
 
 export default function LoginPage() {
   const { login } = useAuth();
-  const navigate = useNavigate()
 
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+
   const [profileData, setProfileData] = useState({
-    login: "",
+    email: "",
     password: "",
   });
 
@@ -27,29 +27,16 @@ export default function LoginPage() {
     setError("");
   };
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
+    setError("");
 
-    const { login: userLogin, password } = profileData;
-
-    if (userLogin === "admin" && password === "123") {
-      login({
-        id: 1,
-        fullName: "Иван Иванов (Админ)",
-        login: userLogin,
-        role: "ADMIN",
-      });
-      navigate("/")
-    } else if (userLogin === "user" && password === "123") {
-      login({
-        id: 2,
-        fullName: "Алексей Смирнов (Студент)",
-        login: userLogin,
-        role: "USER",
-      });
-      navigate("/my-tests")
-    } else {
-      setError("Неверный логин или пароль");
+    const { email, password } = profileData;
+    
+    try {
+      await login(email, password);
+    } catch (error) {
+      setError(error.response?.data?.message || "Ошибка при авторизации");
     }
   };
 
@@ -64,9 +51,10 @@ export default function LoginPage() {
               <div style={{ color: "red", marginBottom: "10px" }}>{error}</div>
             )}
             <Input
-              label="Логин"
-              name="login"
-              value={profileData.login}
+              label="Почта"
+              name="email"
+              type="email"
+              value={profileData.email}
               onChange={handleChange}
             />
             <Input

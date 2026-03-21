@@ -3,8 +3,6 @@ import Header from "../../components/UI/header/Header";
 import ToolBar from "../../components/UI/toolBar/ToolBar";
 import Search from "../../components/UI/search/Search";
 import Button from "../../components/UI/button/Button";
-import { groups } from "../../utils/groups";
-import { users } from "../../utils/users";
 import { tests } from "../../utils/tests";
 import Table from "../../components/tables/table/Table";
 import RowActionsGroups from "../../components/tables/rowActions/RowActionsGroups";
@@ -13,24 +11,42 @@ import { useTable } from "../../utils/hooks/useTable";
 import CreateGroupModal from "../../components/modals/ModalsForGroups/createGroup/CreateGroupModal";
 import OpenTest from "../../components/modals/openTests/OpenTests";
 import { useNavigate } from "react-router";
+import { $authHost } from "../../http";
+import ConfirmModal from "../../components/modals/confirmModal/ConfirmModal";
 
 export default function Groups() {
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [openCreateGroup, setOpenCreateGroup] = useState(false);
   const [openTestModal, setOpenTestModal] = useState(false);
-  const [groupsData, setGroupsData] = useState(groups);
-  const navigate = useNavigate()
+  const [dbGroups, setDbGroups] = useState([]);
+  const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [groupToDelete, setGroupToDelete] = useState(null);
+  const navigate = useNavigate();
+
+  const fetchGroups = async () => {
+    try {
+      const response = await $authHost.get("api/group");
+      const formatedGroups = response.data.map((group) => ({
+        ...group,
+        tests: group.tests || [],
+      }));
+      setDbGroups(formatedGroups);
+    } catch (error) {
+      console.error("Ошибка зыгрузки групп", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchGroups();
+  }, []);
 
   const getTestsName = (id) => {
     return tests.find((g) => g.id === id)?.name;
   };
 
   const handleDelete = (group) => {
-    console.log("Удалить пользователя", group);
-  };
-
-  const handleCreateGroup = (newGroup) => {
-    setGroupsData((prev) => [...prev, newGroup]);
+    setGroupToDelete(group);
+    setDeleteModalOpen(true);
   };
 
   const handleOpenTest = (group) => {
@@ -40,17 +56,33 @@ export default function Groups() {
 
   const handleRowClick = (group) => {
     navigate(`/groups/${group.id}`);
-  }
+  };
 
   const availableTest = useMemo(() => {
     if (!selectedGroup) return [];
 
-    return tests.filter((test) => !selectedGroup.tests.includes(test.id));
+    const groupTests = selectedGroup.tests || [];
+    return tests.filter((test) => !groupTests.includes(test.id));
   }, [selectedGroup]);
+
+  const confirmDelete = async () => {
+    if (!groupToDelete) return;
+
+    try {
+      await $authHost.delete(`api/group/${groupToDelete.id}`);
+
+      setDeleteModalOpen(false);
+      setGroupToDelete(null);
+
+      fetchGroups();
+    } catch (error) {
+      console.error("Ошибка при удалении: ", error);
+    }
+  };
 
   const columns = [
     {
-      key: "groups",
+      key: "name",
       title: "Название группы",
       render: (row) => row.name,
       thStyle: { width: "140px", cursor: "pointer" },
@@ -58,12 +90,16 @@ export default function Groups() {
     {
       key: "openTests",
       title: "Открытые тесты",
-      render: (row) => row.tests?.map(getTestsName).join(", "),
+      render: (row) => {
+        if (!row.tests || row.tests.length === 0) return "—";
+        return row.tests.map(getTestsName).join(", ");
+      },
       thStyle: { width: "700px", cursor: "pointer" },
     },
     {
       key: "usersCount",
       title: "Пользователи",
+      render: (row) => row.usersCount ?? "-",
       thStyle: { width: "120px", cursor: "pointer" },
     },
     {
@@ -90,7 +126,7 @@ export default function Groups() {
     paginatedData,
     handleSort,
     pageSize,
-  } = useTable({ data: groupsData, columns });
+  } = useTable({ data: dbGroups, columns });
 
   return (
     <div>
@@ -109,7 +145,7 @@ export default function Groups() {
           onSort={handleSort}
           sortKey={sortKey}
           sortOrder={sortOrder}
-          onRowClick = {handleRowClick}
+          onRowClick={handleRowClick}
         />
       </div>
       {totalPages > 1 && (
@@ -118,7 +154,7 @@ export default function Groups() {
       <CreateGroupModal
         open={openCreateGroup}
         onClose={() => setOpenCreateGroup(false)}
-        onCreate={handleCreateGroup}
+        onCreate={fetchGroups}
       />
       <OpenTest
         open={openTestModal}
@@ -134,6 +170,21 @@ export default function Groups() {
           );
         }}
       />
+      <ConfirmModal
+        open={isDeleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setGroupToDelete(null);
+        }}
+        onConfirm={confirmDelete}
+        title="Удаление группы"
+      >
+        <p>
+          Вы уверены, что хотите удалить группу{" "}
+          <strong>{groupToDelete?.name}</strong>? Все пользователи останутся в
+          системе, но будут отвязаны от этой группы.
+        </p>
+      </ConfirmModal>
     </div>
   );
 }

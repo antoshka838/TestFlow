@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Header from "../../components/UI/header/Header";
 import ToolBar from "../../components/UI/toolBar/ToolBar";
 import Search from "../../components/UI/search/Search";
@@ -10,30 +10,48 @@ import { useTable } from "../../utils/hooks/useTable";
 import { useNavigate } from "react-router";
 import OpenTestToGroupModal from "../../components/modals/TestsModals/openTestToGroupModal/OpenTestToGroupModal";
 import OpenTestToUserModal from "../../components/modals/TestsModals/openTestToUserModal/OpenTestToUserModal";
+import ConfirmModal from "../../components/modals/confirmModal/ConfirmModal";
 
-import { tests } from "../../utils/tests";
+import { $authHost } from "../../http";
 import { groups } from "../../utils/groups";
 import { users } from "../../utils/users";
 import CreateNewTest from "../../components/modals/TestsModals/createNewTest/CreateNewTest";
 
 export default function Tests() {
+  const [dbTests, setDbTests] = useState([]);
+
+  const [selectedTest, setSelectedTest] = useState(null);
+  const [isGroupModalOpen, setGroupModalOpen] = useState(false);
+  const [isUserModalOpen, setUserModalOpen] = useState(false);
+  const [isCreateTestModalOpen, setCreateTestModalOpen] = useState(false);
+  const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [testToDelete, setTestToDelete] = useState(null);
+  const navigate = useNavigate();
+
+  const fetchTests = async () => {
+    try {
+      const response = await $authHost.get("api/test");
+      setDbTests(response.data);
+    } catch (error) {
+      console.error("Ошибка закгрузки тестов: ", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchTests();
+  }, []);
+
   const enrichedTests = useMemo(() => {
-    return tests.map((test) => ({
+    return dbTests.map((test) => ({
       ...test,
-      individualCount: users.filter((u) => u.openTests.includes(test.id))
+      individualCount: users.filter((u) => u.openTests?.includes(test.id))
         .length,
       assignedGroupsText: groups
         .filter((g) => g.tests?.includes(test.id))
         .map((g) => g.name)
         .join(", "),
     }));
-  }, []);
-
-  const [selectedTest, setSelectedTest] = useState(null);
-  const [isGroupModalOpen, setGroupModalOpen] = useState(false);
-  const [isUserModalOpen, setUserModalOpen] = useState(false);
-  const [isCreateTestModalOpen, setCreateTestModalOpen] = useState(false);
-  const navigate = useNavigate();
+  }, [dbTests]);
 
   const handleOpenForGroup = (test) => {
     setSelectedTest(test);
@@ -56,7 +74,22 @@ export default function Tests() {
   }, [selectedTest]);
 
   const handleDeleteTest = (test) => {
-    console.log("Удаляем тест:", test.id);
+    setTestToDelete(test);
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!testToDelete) return;
+
+    try {
+      await $authHost.delete(`api/test/${testToDelete.id}`);
+      setDeleteModalOpen(false);
+      setTestToDelete(null);
+
+      fetchTests();
+    } catch (error) {
+      console.error("Ошибка при удалении", error);
+    }
   };
 
   const getAssignedGroups = (testId) => {
@@ -168,7 +201,23 @@ export default function Tests() {
       <CreateNewTest
         open={isCreateTestModalOpen}
         onClose={() => setCreateTestModalOpen(false)}
+        onSuccess={fetchTests}
       />
+      <ConfirmModal
+        open={isDeleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setTestToDelete(null);
+        }}
+        onConfirm={confirmDelete}
+        title="Удаление теста"
+      >
+        <p>
+          Вы уверены, что хотите удалить тест{" "}
+          <strong>"{testToDelete?.name}"</strong>? Это действие нельзя отменить,
+          и все связанные с ним результаты могут быть потеряны.
+        </p>
+      </ConfirmModal>
     </div>
   );
 }

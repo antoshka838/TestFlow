@@ -10,7 +10,9 @@ import AddUserModal from "../../components/modals/ModalsForRespondents/addUserMo
 import MyPagination from "../../components/UI/pagination/MyPagination";
 import AddGroupModal from "../../components/modals/ModalsForRespondents/addGroupModal/AddGroupModal";
 import OpenTestUserModal from "../../components/modals/openTests/OpenTests";
-import { users } from "../../utils/users";
+import ConfirmModal from "../../components/modals/confirmModal/ConfirmModal";
+
+import { $authHost } from "../../http";
 import { tests } from "../../utils/tests";
 import { groups } from "../../utils/groups";
 import { useTable } from "../../utils/hooks/useTable";
@@ -21,7 +23,32 @@ export default function Respondents() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [openTestModal, setOpenTestModal] = useState(false);
   const [openAddUser, setOpenAddUser] = useState(false);
-  const navigate = useNavigate()
+  const [isDeleteModalOpen, setDeleteModalOpan] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
+  const navigate = useNavigate();
+
+  const [dbUsers, setDbUsers] = useState([]);
+
+  const fetchUsers = async () => {
+    try {
+      const response = await $authHost.get("api/user");
+
+      const formattedUsers = response.data.map((user) => ({
+        ...user,
+        groups: user.groups,
+        openTests: user.openTests,
+        completedTests: user.completedTests,
+      }));
+
+      setDbUsers(formattedUsers);
+    } catch (error) {
+      console.error("Ошибка при загрузке пользователей: ", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   const getTestName = (id) => {
     return tests.find((t) => t.id === id)?.name;
@@ -32,7 +59,23 @@ export default function Respondents() {
   };
 
   const handleDelete = (user) => {
-    console.log("Удалить пользователя", user);
+    setUserToDelete(user);
+    setDeleteModalOpan(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!userToDelete) return;
+
+    try {
+      await $authHost.delete(`api/user/${userToDelete.id}`);
+
+      setDeleteModalOpan(false);
+      setUserToDelete(null);
+
+      fetchUsers();
+    } catch (error) {
+      console.error("Ошибка при удалении: ", error);
+    }
   };
 
   const handleAddGroup = (user) => {
@@ -73,35 +116,49 @@ export default function Respondents() {
 
   const handleRowClick = (user) => {
     navigate(`/respondents/${user.id}`);
-  }
+  };
 
   const columns = [
     {
       key: "fullName",
       title: "ФИО",
       render: (row) => {
-        const [lastName, firstName, middleName] = row.fullName.split(" ");
+        const parts = row.fullName.split(" ");
+        if (parts.length < 2) return row.fullName;
 
-        return `${lastName} ${firstName[0]}.${middleName[0]}.`;
+        const lastName = parts[0];
+        const firstName = parts[1];
+        const middleName = parts[2] ? `${parts[2][0]}.` : "";
+
+        return `${lastName} ${firstName[0]}.${middleName}`;
       },
       thStyle: { width: "125px", cursor: "pointer" },
     },
     {
       key: "groups",
       title: "Группы",
-      render: (row) => row.groups.map(getGroupName).join(", "),
+      render: (row) => {
+        if (!row.groups || row.groups.length === 0) return "-";
+        return row.groups.map(getGroupName).join(", ");
+      },
       thStyle: { width: "125px", cursor: "pointer" },
     },
     {
       key: "openTests",
       title: "Открытые тесты",
-      render: (row) => row.openTests.map(getTestName).join(", "),
+      render: (row) => {
+        if (!row.openTests || row.openTests.length === 0) return "-";
+        return row.openTests.map(getTestName).join(", ");
+      },
       thStyle: { width: "300px", cursor: "pointer" },
     },
     {
       key: "completedTests",
       title: "Пройденные тесты",
-      render: (row) => row.completedTests.map(getTestName).join(", "),
+      render: (row) => {
+        if (!row.completedTests || row.completedTests.length === 0) return "-";
+        return row.completedTests.map(getTestName).join(", ");
+      },
       thStyle: { width: "300px", cursor: "pointer" },
     },
     {
@@ -129,7 +186,7 @@ export default function Respondents() {
     totalPages,
     paginatedData,
     handleSort,
-  } = useTable({ data: users, columns });
+  } = useTable({ data: dbUsers, columns });
 
   return (
     <div>
@@ -151,7 +208,11 @@ export default function Respondents() {
       {totalPages > 1 && (
         <MyPagination totalPages={totalPages} page={page} setPage={setPage} />
       )}
-      <AddUserModal open={openAddUser} onClose={() => setOpenAddUser(false)} />
+      <AddUserModal
+        open={openAddUser}
+        onClose={() => setOpenAddUser(false)}
+        onCreate={fetchUsers}
+      />
       <AddGroupModal
         open={openGroupModal}
         onClose={() => setOpenGroupModal(false)}
@@ -165,6 +226,20 @@ export default function Respondents() {
         onAdd={handleOpenTestsForUser}
         tests={availableTest}
       />
+      <ConfirmModal
+        open={isDeleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpan(false);
+          setUserToDelete(null);
+        }}
+        onConfirm={confirmDelete}
+        title="Удаление респондента"
+      >
+        <p>
+          Вы уверены, что хотите удалить респондента{" "}
+          <strong>{userToDelete?.fullName}</strong>? Это действие необратимо.
+        </p>
+      </ConfirmModal>
     </div>
   );
 }
