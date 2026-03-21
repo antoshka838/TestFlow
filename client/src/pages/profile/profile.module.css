@@ -1,0 +1,28 @@
+.editWrapper{
+  max-width: 500px;
+}
+
+.editContent{
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.actions{
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.saveBtn{
+  margin-right: 0;
+  margin-left: auto;
+  width: 100%;
+}
+
+.cancelBtn{
+  color: #FFFFFF;
+  background: #E52327;
+  width: 100%;
+}

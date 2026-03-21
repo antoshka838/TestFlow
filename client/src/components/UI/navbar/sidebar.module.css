@@ -1,0 +1,55 @@
+.sidebar{
+  max-width: 255px;
+  width: 100%;
+  background-color: #F9F5EF;
+  display: flex;
+  flex-direction: column;
+  min-height: 400px;
+  height: 100dvh;
+  gap: 24px;
+  padding: 16px;
+  box-sizing: border-box;
+  position: fixed;
+  font-weight: 500;
+}
+
+.logoContainer{
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  margin: 12px 8px 0 8px;
+}
+
+.logoContainer img{
+  width: 40px;
+  height: 30px;
+}
+
+.logoContainer h2{
+  font-size: 24px;
+  font-family: 'Lora';
+  font-style: italic;
+}
+
+li{
+  align-items: center;
+}
+
+.sidebar a{
+  display: block;
+  padding: 12px 16px;
+  color: #21272A;
+  font-weight: 500;
+  border-radius: 15px;
+  transition: background-color 0.2s ease;
+}
+
+.sidebar a:hover{
+  background-color: rgba(255, 218, 83, 0.15);
+}
+
+.sidebar a.active{
+  background-color: rgba(255, 218, 83, 0.4)
+}

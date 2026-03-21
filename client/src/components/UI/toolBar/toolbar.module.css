@@ -1,0 +1,8 @@
+.toolBar{
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 8px;
+  border-bottom: 1px solid #C1C7CD;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+}
