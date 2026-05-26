@@ -85,7 +85,6 @@ TestAccess.belongsTo(User, { foreignKey: "userId" });
 Group.hasMany(TestAccess, { foreignKey: "groupId", onDelete: "CASCADE" });
 TestAccess.belongsTo(Group, { foreignKey: "groupId" });
 
-// Связи для гибридной таблицы TestResult
 Test.hasMany(TestResult, { foreignKey: "testId", onDelete: "CASCADE" });
 TestResult.belongsTo(Test, { foreignKey: "testId" });
 

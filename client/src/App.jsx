@@ -9,16 +9,7 @@ function App() {
   const { user } = useAuth();
   return (
     <BrowserRouter>
-      {!user.isAuthenticated ? (
-        <LoginPage />
-      ) : (
-        <div className={classes.container}>
-          <Sidebar />
-          <main className={classes.mainContainer}>
-            <AppRouter />
-          </main>
-        </div>
-      )}
+      {!user.isAuthenticated ? <LoginPage /> : <AppRouter />}
     </BrowserRouter>
   );
 }

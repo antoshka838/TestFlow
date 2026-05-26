@@ -1,0 +1,17 @@
+"filename", "language", "JavaScript", "JSON", "Dotenv", "comment", "blank", "total"
+"d:\TestFlow\server\.env", "Dotenv", 0, 0, 7, 0, 2, 9
+"d:\TestFlow\server\controllers\groupController.js", "JavaScript", 120, 0, 0, 0, 27, 147
+"d:\TestFlow\server\controllers\testController.js", "JavaScript", 194, 0, 0, 0, 44, 238
+"d:\TestFlow\server\controllers\userController.js", "JavaScript", 425, 0, 0, 0, 77, 502
+"d:\TestFlow\server\db.js", "JavaScript", 11, 0, 0, 0, 1, 12
+"d:\TestFlow\server\index.js", "JavaScript", 23, 0, 0, 0, 5, 28
+"d:\TestFlow\server\middleware\authMiddleware.js", "JavaScript", 20, 0, 0, 0, 5, 25
+"d:\TestFlow\server\models\index.js", "JavaScript", 84, 0, 0, 1, 19, 104
+"d:\TestFlow\server\package-lock.json", "JSON", 0, 1781, 0, 0, 1, 1782
+"d:\TestFlow\server\package.json", "JSON", 0, 27, 0, 0, 1, 28
+"d:\TestFlow\server\routes\groupRouter.js", "JavaScript", 10, 0, 0, 0, 6, 16
+"d:\TestFlow\server\routes\index.js", "JavaScript", 9, 0, 0, 0, 3, 12
+"d:\TestFlow\server\routes\testRouter.js", "JavaScript", 19, 0, 0, 0, 6, 25
+"d:\TestFlow\server\routes\userRouter.js", "JavaScript", 18, 0, 0, 0, 6, 24
+"d:\TestFlow\server\seeds.js", "JavaScript", 21, 0, 0, 0, 1, 22
+"Total", "-", 954, 1808, 7, 1, 204, 2974

@@ -1,0 +1,45 @@
+.cardWrapper {
+  max-width: 100%;
+  margin-bottom: 16px;
+  min-height: 500px;
+  padding: 16px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border: 1px solid #dde1e6;
+  border-radius: 15px;
+}
+
+.stepHeader{
+    margin-top: 16px;
+}
+
+.cardStep {
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  justify-content: center;
+}
+
+.cardStep .answer {
+  display: flex;
+  gap: 12px;
+  align-items: start;
+}
+
+.cardStep .slider{
+    width: 250px;
+}
+
+.cardButtons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: auto;
+}
+
+.btn {
+  width: 200px;
+}
+

@@ -17,4 +17,5 @@
 
 .cardHeader .details{
   font-size: 0.75rem;
+  cursor: pointer;
 }

@@ -1,4 +1,4 @@
-const { Group, User } = require("../models/index");
+const { Group, User, TestAccess } = require("../models/index");
 
 class GroupController {
   async create(req, res) {
@@ -37,20 +37,27 @@ class GroupController {
             attributes: ["id"],
             through: { attributes: [] },
           },
+          {
+            model: TestAccess,
+            attributes: ["testId"],
+            required: false,
+          },
         ],
       });
 
-      const formattedGroups = groups.map(group => {
+      const formattedGroups = groups.map((group) => {
         const plainGroup = group.toJSON();
 
         const groupUsers = plainGroup.Users || plainGroup.users || [];
+        const testAccesses =
+          plainGroup.TestAccesses || plainGroup.testAccesses || [];
 
         return {
           ...plainGroup,
           usersCount: groupUsers.length,
-          tests: plainGroup.tests || [],
-        }
-      })
+          tests: testAccesses.map((ta) => ta.testId),
+        };
+      });
 
       return res.json(formattedGroups);
     } catch (error) {
@@ -58,6 +65,63 @@ class GroupController {
       return res
         .status(500)
         .json({ message: "Ошибка при загрузке списка групп" });
+    }
+  }
+
+  async addTests(req, res) {
+    try {
+      const { groupId, testIds } = req.body;
+
+      if (!groupId || !Array.isArray(testIds)) {
+        return res.status(400).json({ message: "Некорректные данные!" });
+      }
+
+      const group = await Group.findByPk(groupId);
+      if (!group) {
+        return res.status(404).json({ message: "Группа не найдена!" });
+      }
+
+      await TestAccess.destroy({ where: { groupId, accessType: "GROUP" } });
+
+      if (testIds.length > 0) {
+        const accessData = testIds.map((testId) => ({
+          testId,
+          groupId,
+          accessType: "GROUP",
+        }));
+        await TestAccess.bulkCreate(accessData);
+      }
+
+      return res.json({ message: "Тесты успешно привязаны к группе" });
+    } catch (error) {
+      console.error("Опибка при привязке тестов: ", error);
+      return res.status(500).json({ message: "Ошибка при привязке тестов" });
+    }
+  }
+
+  async update(req, res) {
+    try {
+      const { id } = req.params;
+      const { name } = req.body;
+
+      if (!name) {
+        return res
+          .status(400)
+          .json({ message: "Название группы не может быть пустым" });
+      }
+
+      const group = await Group.findByPk(id);
+      if (!group) {
+        return res.status(404).json({ message: "Группа не найдена" });
+      }
+
+      group.name = name;
+      await group.save();
+
+      return res.json({ message: "Группа успешно обновлена", group });
+    } catch (error) {
+      console.error("Ошибка при обновлении группы:", error);
+      return res.status(500).json({ message: "Ошибка при обновлении группы" });
     }
   }
 

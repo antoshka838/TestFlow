@@ -10,6 +10,7 @@ import { useNavigate } from "react-router";
 
 export default function LoginPage() {
   const { login } = useAuth();
+  const navigate = useNavigate();
 
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
@@ -32,9 +33,11 @@ export default function LoginPage() {
     setError("");
 
     const { email, password } = profileData;
-    
+
     try {
       await login(email, password);
+
+      navigate("/");
     } catch (error) {
       setError(error.response?.data?.message || "Ошибка при авторизации");
     }
@@ -47,9 +50,6 @@ export default function LoginPage() {
         <form className={classes.content} onSubmit={handleLogin}>
           <div className={classes.cardInput}>
             <p>Система тестирования и оценки познавательных процессов</p>
-            {error && (
-              <div style={{ color: "red", marginBottom: "10px" }}>{error}</div>
-            )}
             <Input
               label="Почта"
               name="email"
@@ -78,6 +78,9 @@ export default function LoginPage() {
               }}
             />
           </div>
+          {error && (
+            <div style={{ color: "red", marginBottom: "10px" }}>{error}</div>
+          )}
           <Button type="submit">Авторизоваться</Button>
         </form>
       </div>

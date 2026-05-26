@@ -8,11 +8,14 @@ import { InputAdornment, IconButton } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { $authHost } from "../../../../http";
 import * as XLSX from "xlsx";
+import { useToast } from "../../../../context/ToastContext";
 
 export default function AddUserModal({ open, onClose, onCreate }) {
   const [tabValue, setTabValue] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
+
+  const [errors, setErrors] = useState({});
+  const showToast = useToast();
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -25,8 +28,11 @@ export default function AddUserModal({ open, onClose, onCreate }) {
   const fileInputRef = useRef(null);
 
   const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-    setError("");
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: null }));
+    }
   };
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
@@ -36,36 +42,62 @@ export default function AddUserModal({ open, onClose, onCreate }) {
     if (file) {
       setFileName(file.name);
       setSelectedFile(file);
-      setError("");
     }
   };
 
+  const handleCloseModal = () => {
+    setErrors({});
+    setFormData({ fullName: "", email: "", password: "" });
+    setFileName("");
+    setSelectedFile(null);
+    setTabValue(0);
+    onClose();
+  };
+
+  
+
   const handleSave = async () => {
-    setError("");
+    setErrors({});
 
     if (tabValue === 0) {
-      if (!formData.fullName || !formData.email || !formData.password) {
-        setError("Пожалуйста, заполните все поля");
-        return;
+      const newErrors = {};
+      let isValid = true;
+
+      if (!formData.fullName.trim()) {
+        newErrors.fullName = "ФИО обязательно";
+        isValid = false;
       }
+      if (!formData.email.trim()) {
+        newErrors.email = "Email обязателен";
+        isValid = false;
+      } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+        newErrors.email = "Введите корректный email";
+        isValid = false;
+      }
+      if (!formData.password || formData.password.length < 8) {
+        newErrors.password = "Минимум 8 символов";
+        isValid = false;
+      }
+
+      setErrors(newErrors);
+      if (!isValid) return;
 
       try {
         await $authHost.post("api/user/create", formData);
         setFormData({ fullName: "", email: "", password: "" });
 
-        if (onCreate) {
-          onCreate();
-        }
-
-        onClose();
+        if (onCreate) onCreate();
+        showToast("Пользователь успешно создан!", "success");
+        handleCloseModal();
       } catch (error) {
-        setError(
+        showToast(
           error.response?.data?.message || "Ошибка при создании пользователя",
+          "error",
         );
       }
     } else {
       if (!selectedFile) {
-        setError("Выберите файл");
+        showToast("Пожалуйста, выберите файл для загрузки", "error");
         return;
       }
 
@@ -80,8 +112,9 @@ export default function AddUserModal({ open, onClose, onCreate }) {
           const worksheet = workbook.Sheets[sheetName];
 
           const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
           const usersArray = [];
+
+          const fileErrors = [];
 
           for (let i = 0; i < jsonData.length; i++) {
             const row = jsonData[i];
@@ -90,17 +123,45 @@ export default function AddUserModal({ open, onClose, onCreate }) {
               continue;
             }
 
-            if (row[0] && row[1] && row[2]) {
-              usersArray.push({
-                fullName: String(row[0]).trim(),
-                email: String(row[1]).trim(),
-                password: String(row[2]).trim(),
-              });
+            const fullName = String(row[0] || "").trim();
+            const email = String(row[1] || "").trim();
+            const password = String(row[2] || "").trim();
+
+            if (!fullName || !email || !password) {
+              fileErrors.push(`Строка ${i + 1}: Заполнены не все поля`);
+              continue;
             }
+
+            if (!/\S+@\S+\.\S+/.test(email)) {
+              fileErrors.push(
+                `Строка ${i + 1}: Неверный формат email у "${fullName}"`,
+              );
+              continue;
+            }
+
+            if (password.length < 8) {
+              fileErrors.push(
+                `Строка ${i + 1}: Пароль у "${fullName}" меньше 8 символов`,
+              );
+              continue;
+            }
+
+            usersArray.push({ fullName, email, password });
+          }
+
+          if (fileErrors.length > 0) {
+            const errorDisplay =
+              fileErrors.length > 3
+                ? fileErrors.slice(0, 3).join("\n") +
+                  `\n...и еще ${fileErrors.length - 3} ошибок`
+                : fileErrors.join("\n");
+
+            showToast(`Исправьте ошибки в файле:\n${errorDisplay}`, "error");
+            return;
           }
 
           if (usersArray.length === 0) {
-            setError("Файл пуст или не имеет неверный формат!");
+            showToast("Файл пуст или имеет неверный формат!", "error");
             return;
           }
 
@@ -111,38 +172,44 @@ export default function AddUserModal({ open, onClose, onCreate }) {
           setFileName("");
           setSelectedFile(null);
           if (onCreate) onCreate();
-          onClose();
 
-          alert(response.data.message);
+          if (response.data.errors && response.data.errors.length > 0) {
+            showToast(
+              `Загружено частично. Дубликатов пропущено: ${response.data.errors.length}`,
+              "warning",
+            );
+          } else {
+            showToast(
+              response.data.message || "Пользователи успешно загружены!",
+              "success",
+            );
+          }
+
+          handleCloseModal();
         } catch (error) {
           console.error(error);
-          setError(
-            error.response?.data?.message || "Ошибка при обработке данных",
+          showToast(
+            error.response?.data?.message ||
+              "Ошибка при обработке данных из файла",
+            "error",
           );
         }
       };
 
-      reader.onerror = () => setError("Ошибка при чтении файла");
+      reader.onerror = () => showToast("Ошибка при чтении файла", "error");
 
       reader.readAsBinaryString(selectedFile);
     }
   };
-
-  const handleClose = () => {
-    setError("");
-    setFileName("");
-    setSelectedFile(null);
-    onClose();
-  };
-
+  
   return (
     <AppModal
       open={open}
-      onClose={handleClose}
+      onClose={handleCloseModal}
       title="Добавить респондента"
       actions={
         <>
-          <Button onClick={handleClose} className={classes.cancelBtn}>
+          <Button onClick={handleCloseModal} className={classes.cancelBtn}>
             Отмена
           </Button>
           <Button onClick={handleSave} className={classes.saveBtn}>
@@ -156,7 +223,7 @@ export default function AddUserModal({ open, onClose, onCreate }) {
           value={tabValue}
           onChange={(e, val) => {
             setTabValue(val);
-            setError("");
+            setErrors({});
           }}
           variant="fullWidth"
         >
@@ -167,19 +234,26 @@ export default function AddUserModal({ open, onClose, onCreate }) {
 
       <Box sx={{ minHeight: "200px" }}>
         {tabValue === 0 ? (
-          <Stack spacing={2}>
-            {error && <Typography color="error">{error}</Typography>}
+          <Stack
+            spacing={3}
+            style={{ paddingBottom: "20px", marginBottom: "-20px" }}
+          >
             <Input
               label="ФИО"
               name="fullName"
+              autoFocus
               value={formData.fullName}
               onChange={handleInputChange}
+              error={!!errors.fullName}
+              helperText={errors.fullName}
             />
             <Input
               label="Email"
               name="email"
               value={formData.email}
               onChange={handleInputChange}
+              error={!!errors.email}
+              helperText={errors.email}
             />
             <Input
               label="Пароль"
@@ -187,6 +261,8 @@ export default function AddUserModal({ open, onClose, onCreate }) {
               type={showPassword ? "text" : "password"}
               value={formData.password}
               onChange={handleInputChange}
+              error={!!errors.password}
+              helperText={errors.password}
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
@@ -219,6 +295,16 @@ export default function AddUserModal({ open, onClose, onCreate }) {
               {fileName
                 ? `Выбран файл: ${fileName}`
                 : "Выберите файл формата .xlsx или .csv"}
+            </Typography>
+
+            <Typography
+              variant="body1"
+              color="textSecondary"
+              align="center"
+              px={2}
+            >
+              Файл должен иметь столбцы в порядке: <br />{" "}
+              <strong>ФИО, электронная почта, пароль</strong>
             </Typography>
 
             <input

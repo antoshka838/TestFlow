@@ -3,7 +3,6 @@ import Header from "../../components/UI/header/Header";
 import ToolBar from "../../components/UI/toolBar/ToolBar";
 import Search from "../../components/UI/search/Search";
 import Button from "../../components/UI/button/Button";
-import { tests } from "../../utils/tests";
 import Table from "../../components/tables/table/Table";
 import RowActionsGroups from "../../components/tables/rowActions/RowActionsGroups";
 import MyPagination from "../../components/UI/pagination/MyPagination";
@@ -13,15 +12,20 @@ import OpenTest from "../../components/modals/openTests/OpenTests";
 import { useNavigate } from "react-router";
 import { $authHost } from "../../http";
 import ConfirmModal from "../../components/modals/confirmModal/ConfirmModal";
+import Loader from "../../components/UI/loader/Loader";
+import { useToast } from "../../context/ToastContext";
 
 export default function Groups() {
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [openCreateGroup, setOpenCreateGroup] = useState(false);
   const [openTestModal, setOpenTestModal] = useState(false);
   const [dbGroups, setDbGroups] = useState([]);
+  const [dbTests, setDbTests] = useState([]);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
   const [groupToDelete, setGroupToDelete] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const showToast = useToast()
 
   const fetchGroups = async () => {
     try {
@@ -36,12 +40,27 @@ export default function Groups() {
     }
   };
 
+  const fetchTests = async () => {
+    try {
+      const response = await $authHost.get("api/test");
+      setDbTests(response.data);
+    } catch (error) {
+      console.error("Ошибка загрузки тестов", error);
+    }
+  };
+
   useEffect(() => {
-    fetchGroups();
+    const loadAllData = async () => {
+      setIsLoading(true);
+      await Promise.all([fetchGroups(), fetchTests()]);
+      setIsLoading(false);
+    }
+
+    loadAllData();
   }, []);
 
   const getTestsName = (id) => {
-    return tests.find((g) => g.id === id)?.name;
+    return dbTests.find((g) => g.id === id)?.name;
   };
 
   const handleDelete = (group) => {
@@ -62,8 +81,8 @@ export default function Groups() {
     if (!selectedGroup) return [];
 
     const groupTests = selectedGroup.tests || [];
-    return tests.filter((test) => !groupTests.includes(test.id));
-  }, [selectedGroup]);
+    return dbTests.filter((test) => !groupTests.includes(test.id));
+  }, [selectedGroup, dbTests]);
 
   const confirmDelete = async () => {
     if (!groupToDelete) return;
@@ -73,10 +92,11 @@ export default function Groups() {
 
       setDeleteModalOpen(false);
       setGroupToDelete(null);
-
+      showToast("Группа успешно удалена!", "success")
       fetchGroups();
     } catch (error) {
       console.error("Ошибка при удалении: ", error);
+      showToast("Ошибка при удалении", "error")
     }
   };
 
@@ -85,7 +105,7 @@ export default function Groups() {
       key: "name",
       title: "Название группы",
       render: (row) => row.name,
-      thStyle: { width: "140px", cursor: "pointer" },
+      thStyle: { width: "340px", cursor: "pointer" },
     },
     {
       key: "openTests",
@@ -94,7 +114,7 @@ export default function Groups() {
         if (!row.tests || row.tests.length === 0) return "—";
         return row.tests.map(getTestsName).join(", ");
       },
-      thStyle: { width: "700px", cursor: "pointer" },
+      thStyle: { width: "500px", cursor: "pointer" },
     },
     {
       key: "usersCount",
@@ -125,8 +145,16 @@ export default function Groups() {
     totalPages,
     paginatedData,
     handleSort,
-    pageSize,
   } = useTable({ data: dbGroups, columns });
+
+  if (isLoading) {
+    return (
+      <div>
+        <Header title={"Группы"}/>
+        <Loader/>
+      </div>
+    )
+  }
 
   return (
     <div>
@@ -161,13 +189,20 @@ export default function Groups() {
         onClose={() => setOpenTestModal(false)}
         user={selectedGroup}
         tests={availableTest}
-        onAdd={(selectedTestIds) => {
-          console.log(
-            "Открываем тесты",
-            selectedTestIds,
-            "для группы",
-            selectedGroup,
-          );
+        onAdd={async (selectedTestIds) => {
+          try {
+            await $authHost.post("api/group/add-tests", {
+              groupId: selectedGroup.id,
+              testIds: selectedTestIds,
+            });
+
+            setOpenTestModal(false);
+            showToast("Тест успешно открыт!", "success");
+            fetchGroups();
+          } catch (error) {
+            console.error("Ошибка при назначении тестов: ", error);
+            showToast(`Ошибка при назначении тестов: ${error}`, "success");
+          }
         }}
       />
       <ConfirmModal

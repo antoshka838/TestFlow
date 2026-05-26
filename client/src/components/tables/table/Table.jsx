@@ -7,10 +7,11 @@ export default function Table({
   sortKey,
   sortOrder,
   onRowClick,
+  ...props
 }) {
   return (
     <div className={classes.wrapper}>
-      <table className={classes.table}>
+      <table className={classes.table} {...props}>
         <thead className={classes.thead}>
           <tr>
             {columns.map((col) => (

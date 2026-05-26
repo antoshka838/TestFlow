@@ -1,0 +1,144 @@
+.layout {
+  display: flex;
+  height: 100vh;
+  background-color: #fff;
+  overflow: hidden;
+  font-size: 16px;
+}
+
+.mainContent {
+  flex: 1;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow-y: auto;
+}
+
+.imageWrapper {
+  max-width: 800px;
+  width: 100%;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.questionImage {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+.optionsRow {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.optionBtn {
+  width: 60px;
+  height: 60px;
+  font-size: 24px;
+  font-weight: bold;
+  border-radius: 12px;
+  border: 2px solid #ccc;
+  background-color: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #333;
+}
+
+.optionBtn:hover {
+  border-color: #ffda53;
+  background-color: #fff9f9;
+}
+
+.optionBtnSelected {
+  border-color: #f8c50d;
+  background-color: #ffda53;
+  color: #333;
+}
+
+.optionBtnSelected:hover {
+  border-color: #ffd749;
+  background-color: #ffd749;
+}
+
+.navigationBtn {
+  display: flex;
+  gap: 20px;
+}
+
+.sidebar {
+  width: 300px;
+  background-color: #f8f9fa;
+  border-left: 1px solid #e0e0e0;
+  padding: 30px 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.timer {
+  font-size: 32px;
+  font-weight: bold;
+  text-align: center;
+  color: #333;
+  margin-bottom: 30px;
+  padding: 15px;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.navHeader {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.navGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin-bottom: auto;
+}
+
+.navItem {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.navItem:hover {
+  border-color: #999;
+}
+
+.navItemAnswered {
+  background-color: #2e7d32; 
+  border-color: #2e7d32;
+  color: #fff;
+}
+
+.navItemActive {
+  border: 3px solid #ffda53; 
+  transform: scale(1.1);
+}
+
+.startContainer {
+  max-width: 800px;
+  max-height: 550px;
+  margin: 100px auto;
+  text-align: center;
+  padding: 40px;
+}

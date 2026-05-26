@@ -13,45 +13,87 @@ import OpenTestToUserModal from "../../components/modals/TestsModals/openTestToU
 import ConfirmModal from "../../components/modals/confirmModal/ConfirmModal";
 
 import { $authHost } from "../../http";
-import { groups } from "../../utils/groups";
-import { users } from "../../utils/users";
 import CreateNewTest from "../../components/modals/TestsModals/createNewTest/CreateNewTest";
+import Loader from "../../components/UI/loader/Loader";
+import { useToast } from "../../context/ToastContext"; 
 
 export default function Tests() {
   const [dbTests, setDbTests] = useState([]);
+  const [dbGroups, setDbGroups] = useState([]);
+  const [dbUsers, setDbUsers] = useState([]);
 
   const [selectedTest, setSelectedTest] = useState(null);
   const [isGroupModalOpen, setGroupModalOpen] = useState(false);
   const [isUserModalOpen, setUserModalOpen] = useState(false);
   const [isCreateTestModalOpen, setCreateTestModalOpen] = useState(false);
+  
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
   const [testToDelete, setTestToDelete] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  
   const navigate = useNavigate();
+  const showToast = useToast();
 
   const fetchTests = async () => {
     try {
       const response = await $authHost.get("api/test");
       setDbTests(response.data);
     } catch (error) {
-      console.error("Ошибка закгрузки тестов: ", error);
+      console.error("Ошибка загрузки тестов: ", error);
+    }
+  };
+
+  const fetchGroups = async () => {
+    try {
+      const response = await $authHost.get("api/group");
+      const formattedGroups = response.data.map((g) => ({
+        ...g,
+        tests: g.tests || [],
+      }));
+      setDbGroups(formattedGroups);
+    } catch (error) {
+      console.error("Ошибка загрузки групп: ", error);
+    }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const response = await $authHost.get("api/user");
+      const formattedUsers = response.data.map((u) => ({
+        ...u,
+        openTests: u.openTests || [],
+      }));
+      setDbUsers(formattedUsers);
+    } catch (error) {
+      console.error("Ошибка при загрузке пользователей: ", error);
     }
   };
 
   useEffect(() => {
-    fetchTests();
+    setIsLoading(true);
+    Promise.all([fetchTests(), fetchGroups(), fetchUsers()])
+      .catch((err) => {
+        console.error(err);
+        showToast("Ошибка при загрузке данных", "error");
+      })
+      .finally(() => setIsLoading(false));
   }, []);
+
+  const getAssignedGroups = (testId) => {
+    return dbGroups
+      .filter((group) => group.tests?.includes(testId))
+      .map((group) => group.name)
+      .join(", ");
+  };
 
   const enrichedTests = useMemo(() => {
     return dbTests.map((test) => ({
       ...test,
-      individualCount: users.filter((u) => u.openTests?.includes(test.id))
+      individualCount: dbUsers.filter((u) => u.openTests?.includes(test.id))
         .length,
-      assignedGroupsText: groups
-        .filter((g) => g.tests?.includes(test.id))
-        .map((g) => g.name)
-        .join(", "),
+      assignedGroupsText: getAssignedGroups(test.id),
     }));
-  }, [dbTests]);
+  }, [dbTests, dbUsers, getAssignedGroups]);
 
   const handleOpenForGroup = (test) => {
     setSelectedTest(test);
@@ -65,13 +107,13 @@ export default function Tests() {
 
   const availableGroups = useMemo(() => {
     if (!selectedTest) return [];
-    return groups.filter((g) => !g.tests?.includes(selectedTest.id));
-  }, [selectedTest]);
+    return dbGroups.filter((g) => !g.tests?.includes(selectedTest.id));
+  }, [selectedTest, dbGroups]);
 
   const availableUsers = useMemo(() => {
     if (!selectedTest) return [];
-    return users.filter((u) => !u.openTests?.includes(selectedTest.id));
-  }, [selectedTest]);
+    return dbUsers.filter((u) => !u.openTests?.includes(selectedTest.id));
+  }, [selectedTest, dbUsers]);
 
   const handleDeleteTest = (test) => {
     setTestToDelete(test);
@@ -84,23 +126,60 @@ export default function Tests() {
     try {
       await $authHost.delete(`api/test/${testToDelete.id}`);
       setDeleteModalOpen(false);
-      setTestToDelete(null);
-
+      
+      showToast("Тест успешно удален", "success");
       fetchTests();
     } catch (error) {
       console.error("Ошибка при удалении", error);
+      showToast(error.response?.data?.message || "Ошибка при удалении теста", "error");
+      setDeleteModalOpen(false);
     }
-  };
-
-  const getAssignedGroups = (testId) => {
-    return groups
-      .filter((group) => group.tests?.includes(testId))
-      .map((group) => group.name)
-      .join(", ");
   };
 
   const handleRowClick = (test) => {
     navigate(`/tests/${test.id}`);
+  };
+
+  const handleAssignToGroups = async (groupIds) => {
+    try {
+      await Promise.all(
+        groupIds.map((groupId) => {
+          const targetGroup = dbGroups.find((g) => g.id === groupId);
+          const newTests = Array.from(new Set([...targetGroup.tests, selectedTest.id]));
+          return $authHost.post("api/group/add-tests", {
+            groupId: groupId,
+            testIds: newTests,
+          });
+        })
+      );
+      setGroupModalOpen(false);
+      showToast("Тест успешно назначен выбранным группам!", "success");
+      fetchGroups();
+    } catch (error) {
+      console.error("Ошибка при назначении группам:", error);
+      showToast("Ошибка при назначении теста группам", "error");
+    }
+  };
+
+  const handleAssignToUsers = async (userIds) => {
+    try {
+      await Promise.all(
+        userIds.map((userId) => {
+          const targetUser = dbUsers.find((u) => u.id === userId);
+          const newTests = Array.from(new Set([...targetUser.openTests, selectedTest.id]));
+          return $authHost.post("api/user/add-tests", {
+            userId: userId,
+            testIds: newTests,
+          });
+        })
+      );
+      setUserModalOpen(false);
+      showToast("Тест успешно назначен выбранным пользователям!", "success");
+      fetchUsers();
+    } catch (error) {
+      console.error("Ошибка при назначении пользователям:", error);
+      showToast("Ошибка при назначении теста пользователям", "error");
+    }
   };
 
   const columns = [
@@ -113,9 +192,8 @@ export default function Tests() {
       key: "assignedGroupsText",
       title: "Доступен группам",
       render: (row) => {
-        const assigned = getAssignedGroups(row.id);
-        return assigned ? (
-          assigned
+        return row.assignedGroupsText ? (
+          row.assignedGroupsText
         ) : (
           <span style={{ color: "#ccc" }}>Не назначен</span>
         );
@@ -155,6 +233,15 @@ export default function Tests() {
     handleSort,
   } = useTable({ data: enrichedTests, columns });
 
+  if (isLoading) {
+    return (
+      <div>
+        <Header title={"Тесты"} />
+        <Loader />
+      </div>
+    );
+  }
+
   return (
     <div>
       <Header title={"Тесты"} />
@@ -183,9 +270,7 @@ export default function Tests() {
         onClose={() => setGroupModalOpen(false)}
         test={selectedTest}
         groups={availableGroups}
-        onAdd={(groupIds) => {
-          console.log(`Тест ${selectedTest.id} открыт группам:`, groupIds);
-        }}
+        onAdd={handleAssignToGroups}
       />
 
       <OpenTestToUserModal
@@ -193,21 +278,21 @@ export default function Tests() {
         onClose={() => setUserModalOpen(false)}
         test={selectedTest}
         users={availableUsers}
-        onAdd={(userIds) => {
-          console.log(`Тест ${selectedTest.id} открыт пользователям:`, userIds);
-        }}
+        onAdd={handleAssignToUsers}
       />
 
       <CreateNewTest
         open={isCreateTestModalOpen}
         onClose={() => setCreateTestModalOpen(false)}
-        onSuccess={fetchTests}
+        onSuccess={() => {
+          fetchTests();
+        }}
       />
+      
       <ConfirmModal
         open={isDeleteModalOpen}
         onClose={() => {
           setDeleteModalOpen(false);
-          setTestToDelete(null);
         }}
         onConfirm={confirmDelete}
         title="Удаление теста"

@@ -7,12 +7,14 @@ import { useSearch } from "../../../../utils/hooks/useSearch";
 import AppModal from "../../../UI/modal/AppModal";
 import classes from "./createGroupModal.module.css";
 import { $authHost } from "../../../../http";
+import { useToast } from "../../../../context/ToastContext";
 
 export default function CreateGroupModal({ open, onClose, onCreate }) {
   const [groupName, setGroupName] = useState("");
   const [selectedUsers, setSelectedUsers] = useState([]);
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
   const [dbUsers, setDbUsers] = useState([]);
+  const showToast = useToast();
 
   const fetchUsers = async () => {
     try {
@@ -40,8 +42,10 @@ export default function CreateGroupModal({ open, onClose, onCreate }) {
   };
 
   const handleCreate = async () => {
+    setErrors({});
+
     if (!groupName.trim()) {
-      setError("Введите название группы");
+      setErrors({ name: "Введите название группы" });
       return;
     }
 
@@ -53,20 +57,20 @@ export default function CreateGroupModal({ open, onClose, onCreate }) {
 
       setGroupName("");
       setSelectedUsers([]);
-      setError("");
+      setErrors({});
 
       if (onCreate) onCreate();
-
+      showToast("Группа успешно создана!", "success");
       onClose();
     } catch (error) {
-      setError(e.response?.data?.message || "Ошибка при создании группы");
+      showToast(error.response?.data?.message || "Ошибка при создании группы", "error");
     }
   };
 
   const handleClose = () => {
     setGroupName("");
     setSelectedUsers([]);
-    setError("");
+    setErrors({});
     onClose();
   };
 
@@ -86,15 +90,19 @@ export default function CreateGroupModal({ open, onClose, onCreate }) {
         </>
       }
     >
-      <Stack spacing={2}>
-        {error && <Typography color="error">{error}</Typography>}
+      <Stack spacing={2} style={{ marginTop: "10px" }}>
         <Input
           label="Название группы"
           value={groupName}
+          autoFocus
           onChange={(e) => {
             setGroupName(e.target.value);
-            setError("");
+            if (errors.name) {
+              setErrors((prev) => ({ ...prev, name: null }));
+            }
           }}
+          error={!!errors.name}
+          helperText={errors.name}
         />
         <Search
           value={search}

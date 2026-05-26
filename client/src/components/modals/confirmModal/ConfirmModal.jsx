@@ -9,12 +9,18 @@ export default function ConfirmModal({
   onConfirm,
   title,
   children,
+  confirmText = "Удалить",
+  loadingText = "Удаление...",
+  cancelText = "Отмена",
 }) {
   const [isLoading, setIsLoading] = useState(false);
   const handleConfirm = async () => {
     setIsLoading(true);
-    await onConfirm();
-    setIsLoading(false);
+    try {
+      await onConfirm();
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -29,17 +35,19 @@ export default function ConfirmModal({
             className={classes.cancelBtn}
             disabled={isLoading}
           >
-            Отмена
+            {cancelText}
           </Button>
           <Button
             onClick={handleConfirm}
             className={classes.saveBtn}
             disabled={isLoading}
           >
-            {isLoading ? "Удаление..." : "Удалить"}
+            {isLoading ? loadingText : confirmText}
           </Button>
         </>
       }
-    >{children}</AppModal>
+    >
+      {children}
+    </AppModal>
   );
 }

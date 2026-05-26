@@ -8,16 +8,22 @@ import Button from "../../components/UI/button/Button";
 import { useAuth } from "../../context/AuthContext";
 import { $authHost } from "../../http";
 import { jwtDecode } from "jwt-decode";
+import { useNavigate } from "react-router";
+import { useToast } from "../../context/ToastContext";
 
 export default function Profile() {
   const { user, logout, setUser } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
-  const [statusMsg, setStatusMsg] = useState({ text: "", type: "" });
   const [profileData, setProfileData] = useState({
     fullName: user?.fullName || "",
     email: user?.email || "",
     password: "",
   });
+
+  const [errors, setErrors] = useState({});
+
+  const navigate = useNavigate();
+  const showToast = useToast();
 
   useEffect(() => {
     if (user) {
@@ -34,10 +40,46 @@ export default function Profile() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setProfileData((prev) => ({ ...prev, [name]: value }));
-    setStatusMsg({ text: "", type: "" });
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: null }));
+    }
+  };
+
+  const handleCancel = () => {
+    if (user) {
+      setProfileData({
+        fullName: user.fullName,
+        email: user.email,
+        password: "",
+      });
+      setErrors({});
+    }
   };
 
   const handleSave = async () => {
+    const newErrors = {};
+    let isValid = true;
+
+    if (!profileData.fullName.trim()) {
+      newErrors.fullName = "ФИО обязательно для заполнения";
+      isValid = false;
+    }
+
+    if (!profileData.email.trim()) {
+      newErrors.email = "Электронная почта обязательна";
+      isValid = false;
+    } else if (!/\S+@\S+\.\S+/.test(profileData.email)) {
+      newErrors.email = "Введите корректный email";
+      isValid = false;
+    }
+
+    if (profileData.password && profileData.password.length < 8) {
+      newErrors.password = "Пароль должен содержать минимум 8 символов";
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    if (!isValid) return;
     try {
       const response = await $authHost.put("api/user/profile", profileData);
 
@@ -49,24 +91,23 @@ export default function Profile() {
       setUser((prev) => ({
         ...prev,
         fullName: decoded.fullName,
-        emai: decoded.email,
+        email: decoded.email,
       }));
 
       setProfileData((prev) => ({ ...prev, password: "" }));
-      setStatusMsg({
-        text: "Профиль успешно изменен!",
-        type: "success",
-      });
+
+      showToast("Данные успешно обновлены!", "success");
     } catch (error) {
-      setStatusMsg({
-        text: error.response?.data?.message || "Ошибка при обновлении",
-        type: "error",
-      });
+      showToast(
+        error.response?.data?.message || "Ошибка при обновлении",
+        "error",
+      );
     }
   };
 
   const handleLogout = () => {
     logout();
+    navigate("/");
   };
 
   return (
@@ -78,28 +119,21 @@ export default function Profile() {
       </Header>
       <div className={classes.editWrapper}>
         <div className={classes.editContent}>
-          {statusMsg.text && (
-            <div
-              style={{
-                color: statusMsg.type === "success" ? "green" : "red",
-                marginBottom: "15px",
-                fontWeight: "bold",
-              }}
-            >
-              {statusMsg.text}
-            </div>
-          )}
           <Input
             label="ФИО"
             name="fullName"
             value={profileData.fullName}
             onChange={handleChange}
+            error={!!errors.fullName}
+            helperText={errors.fullName}
           />
           <Input
             label="Электронная почта"
             name="email"
             value={profileData.email}
             onChange={handleChange}
+            error={!!errors.email}
+            helperText={errors.email}
           />
           <Input
             label="Пароль"
@@ -107,6 +141,8 @@ export default function Profile() {
             name="password"
             value={profileData.password}
             onChange={handleChange}
+            error={!!errors.password}
+            helperText={errors.password}
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
@@ -124,8 +160,12 @@ export default function Profile() {
         </div>
 
         <div className={classes.actions}>
-          <Button className={classes.cancelBtn}>Отмена</Button>
-          <Button className={classes.saveBtn} onClick={handleSave}>Сохранить</Button>
+          <Button className={classes.cancelBtn} onClick={handleCancel}>
+            Отмена
+          </Button>
+          <Button className={classes.saveBtn} onClick={handleSave}>
+            Сохранить
+          </Button>
         </div>
       </div>
     </div>

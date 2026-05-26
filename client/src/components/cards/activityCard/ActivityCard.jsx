@@ -2,16 +2,17 @@ import classes from "./activityCard.module.css";
 import { PieChart, Pie, Tooltip, ResponsiveContainer } from "recharts";
 import Header from "../../UI/cardHeader/Header";
 
-const data = [
-  { name: "Прошли", value: 18, fill: "#34C924" },
-  { name: "Не прошли", value: 24, fill: "#E52327" },
-];
+export default function ActivityCard({respondents}) {
+  const passed = respondents?.passed || 0;
+  const failed = respondents?.failed || 0;
 
-const total = data.reduce((sum, num) => {
-  return sum + num.value;
-}, 0);
+  const chartData = [
+    { name: "Прошли", value: passed, fill: "#34C924" },
+    { name: "Не прошли", value: failed, fill: "#E52327" },
+  ];
 
-export default function ActivityCard() {
+  const total = passed + failed;
+
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
       return (
@@ -24,7 +25,7 @@ export default function ActivityCard() {
 
   return (
     <div className={classes.cardContainer}>
-      <Header>
+      <Header linkTo="/respondents">
         Респонденты
       </Header>
       <div className={classes.chartRow}>
@@ -32,7 +33,7 @@ export default function ActivityCard() {
           <ResponsiveContainer>
             <PieChart>
               <Pie
-                data={data}
+                data={chartData}
                 dataKey="value"
                 innerRadius="70%"
                 outerRadius="100%"
@@ -49,7 +50,7 @@ export default function ActivityCard() {
         </div>
 
         <div className={classes.stats}>
-          {data.map((item) => (
+          {chartData.map((item) => (
             <div key={item.name} className={classes.statItem}>
               <span
                 className={classes.color}

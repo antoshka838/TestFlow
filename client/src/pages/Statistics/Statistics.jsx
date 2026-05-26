@@ -1,17 +1,35 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Header from "../../components/UI/header/Header";
 import { useTable } from "../../utils/hooks/useTable";
 import ToolBar from "../../components/UI/toolBar/ToolBar";
 import Search from "../../components/UI/search/Search";
 import Table from "../../components/tables/table/Table";
 import MyPagination from "../../components/UI/pagination/MyPagination";
-import { mockStatisticsData } from "../../utils/mockStatisticsData";
 import * as XLSX from "xlsx";
 import Button from "../../components/UI/button/Button";
+import { $authHost } from "../../http";
+import { useNavigate } from "react-router";
+import Loader from "../../components/UI/loader/Loader";
 
 export default function Statistics() {
+  const navigate = useNavigate();
+  const [data, setData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    $authHost
+      .get("api/statistics/tests")
+      .then((res) => setData(res.data))
+      .catch((err) => console.error(err))
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  const handleRowClick = (row) => {
+    navigate(`/statistics/${row.id}`);
+  };
+
   const handleExportToExcel = () => {
-    const dataForExcel = mockStatisticsData.map((row) => {
+    const dataForExcel = data.map((row) => {
       let timeStr = "—";
       if (row.avgTime !== "—") {
         timeStr = `${Math.floor(row.avgTime / 60)} мин. ${row.avgTime % 60} сек.`;
@@ -31,10 +49,10 @@ export default function Statistics() {
 
     worksheet["!cols"] = [
       { wch: 35 },
-      { wch: 15 }, 
-      { wch: 15 }, 
-      { wch: 20 }, 
-      { wch: 20 }, 
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 20 },
+      { wch: 20 },
       { wch: 20 },
     ];
 
@@ -94,19 +112,26 @@ export default function Statistics() {
     paginatedData,
     handleSort,
   } = useTable({
-    data: mockStatisticsData,
+    data,
     columns: columns,
     pageSize: 10,
   });
+
+  if (isLoading) {
+    return (
+      <div>
+        <Header title={"Статистика"} />
+        <Loader />
+      </div>
+    );
+  }
 
   return (
     <div>
       <Header title={"Статистика"} />
       <ToolBar>
         <Search value={search} onChange={(e) => setSearch(e.target.value)} />
-          <Button onClick={handleExportToExcel}>
-            Скачать данные
-          </Button>
+        <Button onClick={handleExportToExcel}>Скачать данные</Button>
       </ToolBar>
       <Table
         data={paginatedData}
@@ -114,6 +139,7 @@ export default function Statistics() {
         onSort={handleSort}
         sortKey={sortKey}
         sortOrder={sortOrder}
+        onRowClick={handleRowClick}
       />
 
       {totalPages > 1 && (

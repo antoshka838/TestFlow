@@ -10,31 +10,38 @@ import GroupDetailedData from "../../pages/groups/GroupDetailedData";
 import RespondentsDetailedInfo from "../../pages/respondents/RespondentsDetailedInfo";
 import TestResults from "../../pages/respondents/TestResults";
 import TestDetailedInfo from "../../pages/tests/TestDetailedInfo";
+import MainLayout from "../MainLayout";
+import DetailedStatistics from "../../pages/Statistics/DetailedStatistics";
 
 export default function AdminRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<Dashboard />} />
-      <Route path="/profile" element={<Profile />} />
-      <Route path="/statistics" element={<Statistics />} />
+      <Route element={<MainLayout />}>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/statistics">
+          <Route index element={<Statistics />} />
+          <Route path="/statistics/:id" element={<DetailedStatistics/>}/>
+        </Route>
 
-      <Route path="/tests">
-        <Route index element={<Tests />} />
-        <Route path=":testId" element={<TestDetailedInfo />} />
+        <Route path="/tests">
+          <Route index element={<Tests />} />
+          <Route path=":testId" element={<TestDetailedInfo />} />
+        </Route>
+
+        <Route path="/groups">
+          <Route index element={<Groups />} />
+          <Route path=":id" element={<GroupDetailedData />} />
+        </Route>
+
+        <Route path="/respondents">
+          <Route index element={<Respondents />} />
+          <Route path=":id" element={<RespondentsDetailedInfo />} />
+          <Route path=":id/tests/:testId" element={<TestResults />} />
+        </Route>
+
+        <Route path="*" element={<ErrorPage />} />
       </Route>
-
-      <Route path="/groups">
-        <Route index element={<Groups />} />
-        <Route path=":id" element={<GroupDetailedData />} />
-      </Route>
-
-      <Route path="/respondents">
-        <Route index element={<Respondents />} />
-        <Route path=":id" element={<RespondentsDetailedInfo />} />
-        <Route path=":id/tests/:testId" element={<TestResults />} />
-      </Route>
-
-      <Route path="*" element={<ErrorPage />} />
     </Routes>
   );
 }

@@ -1,0 +1,64 @@
+.cardWrapper {
+  max-width: 100%;
+  margin-bottom: 16px;
+  box-sizing: border-box;
+}
+
+h2 {
+  margin-bottom: 8px;
+}
+
+.card {
+  border: 1px solid #dde1e6;
+  padding: 16px;
+  border-radius: 15px;
+}
+
+.information {
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.actions {
+  padding: 16px;
+  background-color: #f8f9fa;
+  border-radius: 15px;
+  border: 1px solid #e9ecef;
+}
+
+.actionsContent {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+}
+
+.confirmedTest {
+  font-weight: 600;
+  color: #2e7d32;
+  font-size: 16px;
+}
+
+.inProcess {
+  color: #ed6c02;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.buttons {
+  display: flex;
+  gap: 16px;
+}
+
+.completeBtn {
+  background-color: #2e7d32;
+  color: white;
+  width: 150px;
+}
+
+.cancelBtn {
+  background-color: #e52327;
+  color: white;
+  width: 150px;
+}

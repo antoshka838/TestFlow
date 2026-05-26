@@ -3,23 +3,21 @@ import H2 from "../../components/UI/h2/H2";
 import classes from "./TestResultCard.module.css";
 
 const internalQuestions = {
-  taskDifficulty: "Задания теста показались мне сложными.",
-  memoryLoad:
-    "Объём информации, который необходимо было удерживать в памяти, был большим.",
-  concentration:
-    "Для выполнения теста требовалась высокая концентрация внимания.",
-  multitasking:
-    "Мне было трудно одновременно обрабатывать несколько элементов информации.",
-  mentalEffort: "Содержание теста требовало значительных умственных усилий.",
+  testTasksSeemedDifficult: "Задания теста показались сложными:",
+  informationLoadWasHigh: "Объём информации был большим:",
+  requiredHighConcentration: "Требовалась высокая концентрация внимания:",
+  difficultyProcessingMultipleItems:
+    "Трудно одновременно обрабатывать несколько элементов:",
+  requiredSignificantMentalEffort:
+    "Требовались значительные умственные усилия:",
 };
 
 const externalQuestions = {
-  instructionClarity: "Инструкция к тесту была понятной с первого прочтения.",
-  interfaceConvenience: "Интерфейс теста был удобным и интуитивно понятным.",
-  noDistractions: "На экране не было лишних или отвлекающих элементов.",
-  navigationEase: "Навигация между заданиями была простой и понятной.",
-  questionClarity:
-    "Формулировки вопросов были ясными и не вызывали двусмысленности.",
+  instructionWasConfusing: "Инструкция к тесту показалась непонятной:",
+  interfaceWasNotIntuitive: "Интерфейс оказался сложным и непонятным:",
+  screenHadDistractingElements: "Были отвлекающие элементы:",
+  navigationWasConfusing: "Переключаться между заданиями было неудобно:",
+  questionsWereAmbiguous: "Некоторые вопросы были неоднозначны:",
 };
 
 export default function TestResultCard({ result }) {
@@ -27,23 +25,28 @@ export default function TestResultCard({ result }) {
 
   const {
     testName,
-    score,
-    timeSpent,
-    internalLoad,
-    externalLoad,
-    comment,
+    rating,
     correctAnswers,
     totalQuestions,
     accuracy,
+    timeSpent,
+    cognitiveLoad,
+    comment,
   } = result;
 
+  const internalKeys = Object.keys(internalQuestions);
   const avgInternal =
-    Object.values(internalLoad).reduce((a, b) => a + b, 0) /
-    Object.values(internalLoad).length;
+    internalKeys.reduce(
+      (sum, key) => sum + Number(cognitiveLoad[key] || 0),
+      0,
+    ) / (internalKeys.length || 1);
 
+  const externalKeys = Object.keys(externalQuestions);
   const avgExternal =
-    Object.values(externalLoad).reduce((a, b) => a + b, 0) /
-    Object.values(externalLoad).length;
+    externalKeys.reduce(
+      (sum, key) => sum + Number(cognitiveLoad[key] || 0),
+      0,
+    ) / (externalKeys.length || 1);
 
   return (
     <div className={classes.card}>
@@ -51,34 +54,39 @@ export default function TestResultCard({ result }) {
 
       <div className={classes.info}>
         <p>
-          <strong>Оценка:</strong> {score}/10
+          <strong>Оценка теста респондентом:</strong>{" "}
+          {rating ? `${rating}/10` : "—"}
         </p>
         <p>
           <strong>Правильных ответов:</strong> {correctAnswers} из{" "}
           {totalQuestions} ({accuracy}%)
         </p>
         <p>
-          <strong>Время:</strong> {timeSpent}
+          <strong>Время прохождения:</strong> {timeSpent}
         </p>
         <p>
           <strong>Статус:</strong> Пройден
         </p>
         <p>
-          <strong>Средняя внутренняя нагрузка:</strong> {avgInternal.toFixed(2)}
+          <strong>Средняя внутренняя нагрузка:</strong> {avgInternal.toFixed(2)}{" "}
+          / 5
         </p>
         <p>
-          <strong>Средняя внешняя нагрузка:</strong> {avgExternal.toFixed(2)}
+          <strong>Средняя внешняя нагрузка:</strong> {avgExternal.toFixed(2)} /
+          5
         </p>
       </div>
 
       <div className={classes.section}>
-        <h3>Внутренняя когнитивная нагрузка</h3>
+        <h3>Внутренняя когнитивная нагрузка (от 1 до 5)</h3>
         <table className={classes.table}>
           <tbody>
-            {Object.entries(internalLoad).map(([key, value]) => (
+            {internalKeys.map((key) => (
               <tr key={key}>
                 <td>{internalQuestions[key]}</td>
-                <td>{value}</td>
+                <td style={{ fontWeight: "bold" }}>
+                  {cognitiveLoad[key] || "—"}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -86,13 +94,15 @@ export default function TestResultCard({ result }) {
       </div>
 
       <div className={classes.section}>
-        <h3>Внешняя нагрузка</h3>
+        <h3>Внешняя когнитивная нагрузка</h3>
         <table className={classes.table}>
           <tbody>
-            {Object.entries(externalLoad).map(([key, value]) => (
+            {externalKeys.map((key) => (
               <tr key={key}>
                 <td>{externalQuestions[key]}</td>
-                <td>{value}</td>
+                <td style={{ fontWeight: "bold" }}>
+                  {cognitiveLoad[key] || "—"}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -102,7 +112,7 @@ export default function TestResultCard({ result }) {
       {comment && (
         <div className={classes.section}>
           <h3>Комментарий</h3>
-          <p>{comment}</p>
+          <p>"{comment}"</p>
         </div>
       )}
     </div>

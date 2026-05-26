@@ -1,33 +1,46 @@
 import { NavLink } from "react-router";
 import classes from "./sidebar.module.css";
-import logo from "../../../assets/logo.png"
+import logo from "../../../assets/logo.png";
+import { useAuth } from "../../../context/AuthContext";
 
 export default function Sidebar() {
+  const {user} = useAuth();
+
+  const adminLinks = [
+    { path: "/", label: "Главная" },
+    { path: "/tests", label: "Тесты" },
+    { path: "/groups", label: "Группы" },
+    { path: "/respondents", label: "Респонденты" },
+    { path: "/statistics", label: "Статистика" },
+    { path: "/profile", label: "Профиль" },
+  ];
+
+  const respondentLinks = [
+    { path: "/tests", label: "Главная" },
+    { path: "/profile", label: "Профиль" },
+  ];
+
+  const linksToRender = user?.role === "ADMIN" ? adminLinks : respondentLinks;
+
   return (
     <aside className={classes.sidebar}>
       <div className={classes.logoContainer}>
-        <img src={logo} alt="TextFlow" />
-        <h2>TextFlow</h2>
+        <img src={logo} alt="TestFlow" />
+        <h2>TestFlow</h2>
       </div>
       <ul>
-        <li>
-          <NavLink to="/" className={({ isActive }) => (isActive ? classes.active : undefined)}>Dashboard</NavLink>
-        </li>
-        <li>
-          <NavLink to="/tests" className={({ isActive }) => (isActive ? classes.active : undefined)}>Тесты</NavLink>
-        </li>
-        <li>
-          <NavLink to="/groups" className={({ isActive }) => (isActive ? classes.active : undefined)}>Группы</NavLink>
-        </li>
-        <li>
-          <NavLink to="/respondents" className={({ isActive }) => (isActive ? classes.active : undefined)}>Респонденты</NavLink>
-        </li>
-        <li>
-          <NavLink to="/statistics" className={({ isActive }) => (isActive ? classes.active : undefined)}>Статистика</NavLink>
-        </li>
-        <li>
-          <NavLink to="/profile" className={({ isActive }) => (isActive ? classes.active : undefined)}>Профиль</NavLink>
-        </li>
+        {linksToRender.map((link) => (
+          <li key={link.path}>
+            <NavLink
+              to={link.path}
+              className={({ isActive }) =>
+                isActive ? classes.active : undefined
+              }
+            >
+              {link.label}
+            </NavLink>
+          </li>
+        ))}
       </ul>
     </aside>
   );
