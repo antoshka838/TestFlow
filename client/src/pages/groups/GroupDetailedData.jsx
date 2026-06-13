@@ -17,6 +17,7 @@ import Loader from "../../components/UI/loader/Loader";
 import { useToast } from "../../context/ToastContext";
 import ConfirmModal from "../../components/modals/confirmModal/ConfirmModal";
 import { Checkbox } from "@mui/material";
+import Message from "../../components/tableMessage/Message";
 
 export default function GroupDetailedData() {
   const { id } = useParams();
@@ -307,7 +308,12 @@ export default function GroupDetailedData() {
     totalPages: testsTotalPages,
     paginatedData: paginatedTests,
     handleSort: handleSortTests,
-  } = useTable({ data: groupTests, columns: testColumns, pageSize: 5 });
+  } = useTable({
+    data: groupTests,
+    columns: testColumns,
+    pageSize: 5,
+    searchKeys: ["name"],
+  });
 
   const {
     search: usersSearch,
@@ -319,13 +325,18 @@ export default function GroupDetailedData() {
     totalPages: usersTotalPages,
     paginatedData: paginatedUsers,
     handleSort: handleSortUsers,
-  } = useTable({ data: groupUsers, columns: userColumns, pageSize: 5 });
+  } = useTable({
+    data: groupUsers,
+    columns: userColumns,
+    pageSize: 5,
+    searchKeys: ["fullName"],
+  });
 
   const finalUserColumns = [
     {
       key: "checkbox",
       title: (
-        <div onClick={(e) => e.stopPropagation()} style={{ cursor: "default" }}>
+        <div onClick={(e) => e.stopPropagation()} style={{ cursor: "default", justifySelf: "start" }}>
           <Checkbox
             size="small"
             checked={
@@ -377,13 +388,21 @@ export default function GroupDetailedData() {
           />
           <Button onClick={() => setOpenTestModal(true)}>Открыть тест</Button>
         </ToolBar>
-        <Table
+        {paginatedTests.length > 0 ? (
+          <Table
           data={paginatedTests}
           columns={testColumns}
           onSort={handleSortTests}
           sortKey={testsSortKey}
           sortOrder={testsSortOrder}
         />
+        ) : (
+          <Message>
+            {testsSearch
+            ? "По вашему запросу ничего не найдено. Попробуйте изменить параметры поиска."
+            : "Группе пока не назначены тесты."}
+          </Message>
+        )}
         {testsTotalPages > 1 && (
           <MyPagination
             totalPages={testsTotalPages}
@@ -418,13 +437,21 @@ export default function GroupDetailedData() {
             </Button>
           </div>
         </ToolBar>
-        <Table
+        {paginatedUsers.length > 0 ? (
+          <Table
           data={paginatedUsers}
           columns={finalUserColumns}
           onSort={handleSortUsers}
           sortKey={usersSortKey}
           sortOrder={usersSortOrder}
         />
+        ) : (
+          <Message>
+            {usersSearch
+            ? "По вашему запросу ничего не найдено. Попробуйте изменить параметры поиска."
+            : "В группе пока нет респондентов."}
+          </Message>
+        )}
         {usersTotalPages > 1 && (
           <MyPagination
             totalPages={usersTotalPages}

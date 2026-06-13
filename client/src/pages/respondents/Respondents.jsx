@@ -18,6 +18,7 @@ import { useTable } from "../../utils/hooks/useTable";
 import { useNavigate } from "react-router";
 import Loader from "../../components/UI/loader/Loader";
 import { useToast } from "../../context/ToastContext";
+import Message from "../../components/tableMessage/Message";
 
 export default function Respondents() {
   const [openGroupModal, setOpenGroupModal] = useState(false);
@@ -301,7 +302,7 @@ export default function Respondents() {
     totalPages,
     paginatedData,
     handleSort,
-  } = useTable({ data: enrichedUsers, columns });
+  } = useTable({ data: enrichedUsers, columns, searchKeys: ["fullName"] });
 
   const finalColumns = [
     {
@@ -360,7 +361,8 @@ export default function Respondents() {
           </Button>
         </div>
       </ToolBar>
-      <Table
+      {paginatedData.length > 0 ? (
+        <Table
         columns={finalColumns}
         data={paginatedData}
         onSort={handleSort}
@@ -369,6 +371,13 @@ export default function Respondents() {
         onRowClick={handleRowClick}
         style={{tableLayout: "fixed"}}
       />
+      ) : (
+        <Message>
+          {search
+            ? "По вашему запросу ничего не найдено. Попробуйте изменить параметры поиска."
+            : "У вас пока нет респондетов."}
+        </Message>
+      )}
       {totalPages > 1 && (
         <MyPagination totalPages={totalPages} page={page} setPage={setPage} />
       )}

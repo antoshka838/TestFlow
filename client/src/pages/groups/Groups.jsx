@@ -14,6 +14,7 @@ import { $authHost } from "../../http";
 import ConfirmModal from "../../components/modals/confirmModal/ConfirmModal";
 import Loader from "../../components/UI/loader/Loader";
 import { useToast } from "../../context/ToastContext";
+import Message from "../../components/tableMessage/Message";
 
 export default function Groups() {
   const [selectedGroup, setSelectedGroup] = useState(null);
@@ -35,6 +36,7 @@ export default function Groups() {
         tests: group.tests || [],
       }));
       setDbGroups(formatedGroups);
+      console.log(formatedGroups);
     } catch (error) {
       console.error("Ошибка зыгрузки групп", error);
     }
@@ -145,7 +147,7 @@ export default function Groups() {
     totalPages,
     paginatedData,
     handleSort,
-  } = useTable({ data: dbGroups, columns });
+  } = useTable({ data: dbGroups, columns, searchKeys: ["name"]});
 
   if (isLoading) {
     return (
@@ -167,6 +169,7 @@ export default function Groups() {
         <Button onClick={() => setOpenCreateGroup(true)}>Создать группу</Button>
       </ToolBar>
       <div>
+        {paginatedData.length > 0 ? (
         <Table
           data={paginatedData}
           columns={columns}
@@ -175,6 +178,13 @@ export default function Groups() {
           sortOrder={sortOrder}
           onRowClick={handleRowClick}
         />
+        ) : (
+          <Message>
+            {search
+            ? "По вашему запросу ничего не найдено. Попробуйте изменить параметры поиска."
+            : "У вас пока нет созданных групп."}
+          </Message>
+        )}
       </div>
       {totalPages > 1 && (
         <MyPagination totalPages={totalPages} page={page} setPage={setPage} />

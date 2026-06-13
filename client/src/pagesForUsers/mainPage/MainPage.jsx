@@ -61,6 +61,7 @@ export default function MainPage() {
       data: filteredTests,
       columns: cardColumns,
       pageSize: 6,
+      searchKeys: ["name"],
     });
 
   const handleOpenResult = (testId) => {

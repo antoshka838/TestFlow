@@ -10,6 +10,7 @@ import Button from "../../components/UI/button/Button";
 import { $authHost } from "../../http";
 import { useNavigate } from "react-router";
 import Loader from "../../components/UI/loader/Loader";
+import Message from "../../components/tableMessage/Message";
 
 export default function Statistics() {
   const navigate = useNavigate();
@@ -115,6 +116,7 @@ export default function Statistics() {
     data,
     columns: columns,
     pageSize: 10,
+    searchKeys: ["name"],
   });
 
   if (isLoading) {
@@ -133,7 +135,8 @@ export default function Statistics() {
         <Search value={search} onChange={(e) => setSearch(e.target.value)} />
         <Button onClick={handleExportToExcel}>Скачать данные</Button>
       </ToolBar>
-      <Table
+      {paginatedData.length > 0 ? (
+        <Table
         data={paginatedData}
         columns={columns}
         onSort={handleSort}
@@ -141,6 +144,13 @@ export default function Statistics() {
         sortOrder={sortOrder}
         onRowClick={handleRowClick}
       />
+      ) : (
+        <Message>
+          {search
+            ? "По вашему запросу ничего не найдено. Попробуйте изменить параметры поиска."
+            : "Статистика отсутствует."}
+        </Message>
+      )}
 
       {totalPages > 1 && (
         <MyPagination totalPages={totalPages} page={page} setPage={setPage} />

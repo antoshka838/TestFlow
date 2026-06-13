@@ -144,73 +144,6 @@ export default function EvaluationPage() {
     setActiveStep((prev) => prev - 1);
   };
 
-  // const renderStep1 = () => (
-  //   <div className={classes.cardStep}>
-  //     <div className={classes.answer}>
-  //       <Typography>
-  //         Введите количество <span style={{ color: "green" }}>верных</span>{" "}
-  //         ответов:
-  //       </Typography>
-  //       <TextField
-  //         type="number"
-  //         size="small"
-  //         value={evaluationData.correctAnswers}
-  //         onChange={(e) => handleChange("correctAnswers", e.target.value)}
-  //         slotProps={{ min: 0 }}
-  //         disabled={isInternalTest}
-  //         error={errors.correctAnswers}
-  //         helperText={errors.correctAnswers ? "Обязательное поле" : ""}
-  //       />
-  //     </div>
-  //     <div className={classes.answer}>
-  //       <Typography>
-  //         Введите количество <span style={{ color: "red" }}>неверных</span>{" "}
-  //         ответов:
-  //       </Typography>
-  //       <TextField
-  //         type="number"
-  //         size="small"
-  //         value={evaluationData.incorrectAnswers}
-  //         onChange={(e) => handleChange("incorrectAnswers", e.target.value)}
-  //         slotProps={{ min: 0 }}
-  //         disabled={isInternalTest}
-  //         error={errors.incorrectAnswers}
-  //         helperText={errors.incorrectAnswers ? "Обязательное поле" : ""}
-  //       />
-  //     </div>
-  //     <div className={classes.answer}>
-  //       <Typography gutterBottom>
-  //         Оцените качество теста (от 1 до 10)
-  //       </Typography>
-  //       <div className={classes.slider}>
-  //         <Slider
-  //           value={evaluationData.testRating}
-  //           onChange={(e, newValue) => handleChange("testRating", newValue)}
-  //           step={1}
-  //           marks
-  //           min={1}
-  //           max={10}
-  //           valueLabelDisplay="auto"
-  //           sx={{
-  //             color: "#FFDA53",
-  //             "& .MuiSlider-track": {
-  //               height: 5,
-  //             },
-  //           }}
-  //         />
-  //       </div>
-  //     </div>
-  //     <TextField
-  //       label="Комментарий (необязательно)"
-  //       multiline
-  //       rows={4}
-  //       fullWidth
-  //       placeholder="Напишите ваши впечатления от теста, были ли сложности с пониманием вопросов..."
-  //       value={evaluationData.comment}
-  //       onChange={(e) => handleChange("comment", e.target.value)}
-  //     />
-  //   </div>
-  // );
 
   const renderStep1 = () => (
     <div className={classes.cardStep}>
@@ -290,7 +223,7 @@ export default function EvaluationPage() {
       </div>
       <div className={classes.answer}>
         <Typography gutterBottom>
-          Задания теста показались мне сложными:
+          Моих текущих знаний было недостаточно для легкого прохождения теста:
         </Typography>
         <div className={classes.slider}>
           <Slider

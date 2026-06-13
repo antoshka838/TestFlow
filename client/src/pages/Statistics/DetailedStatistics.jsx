@@ -10,6 +10,7 @@ import * as XLSX from "xlsx";
 import Button from "../../components/UI/button/Button";
 import { $authHost } from "../../http";
 import Loader from "../../components/UI/loader/Loader";
+import Message from "../../components/tableMessage/Message";
 
 const formatFullName = (fullName) => {
   if (!fullName) return "—";
@@ -186,6 +187,7 @@ export default function DetailedStatistics() {
     data: filteredData,
     columns: columns,
     pageSize: 10,
+    searchKeys: ["userName"],
   });
 
   const activeFiltersCount = selectedGroups.length + selectedStatuses.length;
@@ -343,13 +345,21 @@ export default function DetailedStatistics() {
         <Button onClick={handleExportToExcel}>Скачать Excel</Button>
       </ToolBar>
 
-      <Table
+      {paginatedData.length > 0 ? (
+        <Table
         data={paginatedData}
         columns={columns}
         onSort={handleSort}
         sortKey={sortKey}
         sortOrder={sortOrder}
       />
+      ) : (
+        <Message>
+          {search
+            ? "По вашему запросу ничего не найдено. Попробуйте изменить параметры поиска."
+            : "Статистика отсутствует."}
+        </Message>
+      )}
 
       {totalPages > 1 && (
         <MyPagination totalPages={totalPages} page={page} setPage={setPage} />

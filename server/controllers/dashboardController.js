@@ -92,7 +92,7 @@ class DashboardController {
         const cog = result.cognitiveLoad || {};
 
         const intLoadSum =
-          Number(cog.testTasksSeemedDifficult || 3) +
+          Number(cog.lackedPriorKnowledge || 3) + 
           Number(cog.informationLoadWasHigh || 3) +
           Number(cog.requiredHighConcentration || 3) +
           Number(cog.difficultyProcessingMultipleItems || 3) +
@@ -121,17 +121,23 @@ class DashboardController {
 
       const statsArray = Object.values(testStats).map((t) => {
         const timeMins = t.count > 0 ? Math.round(t.totalTimeMs / t.count / 60000) : 0;
+        const avgRating = t.totalRating / t.count;
+        const avgExtLoad = t.totalExtLoad / t.count;
+        
+        const problemScore = (10 - avgRating) + (avgExtLoad * 2);
+
         return {
           id: t.id,
           name: t.name,
-          avgRating: (t.totalRating / t.count).toFixed(1),
+          avgRating: avgRating.toFixed(1),
           avgIntLoad: (t.totalIntLoad / t.count).toFixed(1),
-          avgExtLoad: (t.totalExtLoad / t.count).toFixed(1),
+          avgExtLoad: avgExtLoad.toFixed(1),
           avgTime: timeMins,
+          problemScore: problemScore 
         };
       });
 
-      statsArray.sort((a, b) => b.avgRating - a.avgRating);
+      statsArray.sort((a, b) => a.problemScore - b.problemScore);
 
       const bestTest = statsArray.length > 0 ? statsArray[0] : null;
       const problemTest = statsArray.length > 1 ? statsArray[statsArray.length - 1] : null;

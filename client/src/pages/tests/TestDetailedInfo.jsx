@@ -17,6 +17,7 @@ import ConfirmModal from "../../components/modals/confirmModal/ConfirmModal";
 import { $authHost } from "../../http";
 import Loader from "../../components/UI/loader/Loader";
 import { useToast } from "../../context/ToastContext";
+import Message from "../../components/tableMessage/Message";
 
 export default function TestDetailedInfo() {
   const { testId } = useParams();
@@ -368,7 +369,7 @@ export default function TestDetailedInfo() {
     totalPages: groupTotalPages,
     paginatedData: paginatedGroups,
     handleSort: handleSortGroups,
-  } = useTable({ data: assignedGroups, columns: groupColumns, pageSize: 5 });
+  } = useTable({ data: assignedGroups, columns: groupColumns, pageSize: 5, searchKeys: ["name"]});
 
   const {
     search: userSearch,
@@ -380,7 +381,7 @@ export default function TestDetailedInfo() {
     totalPages: userTotalPages,
     paginatedData: paginatedUsers,
     handleSort: handleSortUsers,
-  } = useTable({ data: assignedUsers, columns: userColumns, pageSize: 5 });
+  } = useTable({ data: assignedUsers, columns: userColumns, pageSize: 5, searchKeys: ["fullName"] });
 
   if (isLoading) {
     return (
@@ -440,13 +441,21 @@ export default function TestDetailedInfo() {
           />
           <Button onClick={() => setOpenAddGroup(true)}>Добавить группу</Button>
         </ToolBar>
-        <Table
+        {paginatedGroups.length > 0 ? (
+          <Table
           data={paginatedGroups}
           columns={groupColumns}
           onSort={handleSortGroups}
           sortKey={groupSortKey}
           sortOrder={groupSortOrder}
         />
+        ) : (
+          <Message>
+            {groupSearch
+            ? "По вашему запросу ничего не найдено. Попробуйте изменить параметры поиска."
+            : "Тест пока не назначен ни одной группе."}
+          </Message>
+        )}
         {groupTotalPages > 1 && (
           <MyPagination
             totalPages={groupTotalPages}
@@ -467,13 +476,21 @@ export default function TestDetailedInfo() {
             Добавить респондента
           </Button>
         </ToolBar>
-        <Table
+        {paginatedUsers.length > 0 ? (
+          <Table
           data={paginatedUsers}
           columns={userColumns}
           onSort={handleSortUsers}
           sortKey={userSortKey}
           sortOrder={userSortOrder}
         />
+        ) : (
+          <Message>
+            {userSearch
+            ? "По вашему запросу ничего не найдено. Попробуйте изменить параметры поиска."
+            : "Тест пока не назначен ни одному респонденту."}
+          </Message>
+        )}
         {userTotalPages > 1 && (
           <MyPagination
             totalPages={userTotalPages}

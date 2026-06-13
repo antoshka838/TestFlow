@@ -3,7 +3,7 @@ import H2 from "../../components/UI/h2/H2";
 import classes from "./TestResultCard.module.css";
 
 const internalQuestions = {
-  testTasksSeemedDifficult: "Задания теста показались сложными:",
+  testTasksSeemedDifficult: "Моих текущих знаний было недостаточно для легкого прохождения теста:",
   informationLoadWasHigh: "Объём информации был большим:",
   requiredHighConcentration: "Требовалась высокая концентрация внимания:",
   difficultyProcessingMultipleItems:

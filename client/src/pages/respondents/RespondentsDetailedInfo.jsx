@@ -17,6 +17,7 @@ import ConfirmModal from "../../components/modals/confirmModal/ConfirmModal";
 import { $authHost } from "../../http";
 import Loader from "../../components/UI/loader/Loader";
 import { useToast } from "../../context/ToastContext";
+import Message from "../../components/tableMessage/Message";
 
 export default function RespondentsDetailedInfo() {
   const { id } = useParams();
@@ -378,7 +379,7 @@ export default function RespondentsDetailedInfo() {
     totalPages: groupsTotalPages,
     paginatedData: paginatedGroups,
     handleSort: handleSortGroups,
-  } = useTable({ data: group, columns: groupColumns, pageSize: 5 });
+  } = useTable({ data: group, columns: groupColumns, pageSize: 5, searchKeys: ["name"] });
 
   const {
     search: testsSearch,
@@ -390,7 +391,7 @@ export default function RespondentsDetailedInfo() {
     totalPages: testsTotalPages,
     paginatedData: paginatedTests,
     handleSort: handleSortTests,
-  } = useTable({ data: userTests, columns: testColumns, pageSize: 5 });
+  } = useTable({ data: userTests, columns: testColumns, pageSize: 5, searchKeys: ["name"] });
 
   if (isLoading) {
     return (
@@ -459,13 +460,22 @@ export default function RespondentsDetailedInfo() {
             Добавить в группу
           </Button>
         </ToolBar>
-        <Table
+        
+        {paginatedGroups.length > 0 ? (
+<Table
           data={paginatedGroups}
           columns={groupColumns}
           onSort={handleSortGroups}
           sortKey={groupsSortKey}
           sortOrder={groupsSortOrder}
         />
+        ) : (
+          <Message>
+            {groupsSearch
+            ? "По вашему запросу ничего не найдено. Попробуйте изменить параметры поиска."
+            : "Респондент не состоит в группе."}
+          </Message>
+        )}
         {groupsTotalPages > 1 && (
           <MyPagination
             totalPages={groupsTotalPages}
@@ -484,13 +494,21 @@ export default function RespondentsDetailedInfo() {
           />
           <Button onClick={() => setOpenTestModal(true)}>Открыть тест</Button>
         </ToolBar>
-        <Table
+        {paginatedTests.length > 0 ? (
+          <Table
           data={paginatedTests}
           columns={testColumns}
           onSort={handleSortTests}
           sortKey={testsSortKey}
           sortOrder={testsSortOrder}
         />
+        ) : (
+          <Message>
+            {testsSearch
+            ? "По вашему запросу ничего не найдено. Попробуйте изменить параметры поиска."
+            : "Тесты не назначены."}
+          </Message>
+        )}
         {testsTotalPages > 1 && (
           <MyPagination
             totalPages={testsTotalPages}

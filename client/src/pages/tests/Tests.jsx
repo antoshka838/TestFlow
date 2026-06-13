@@ -11,11 +11,11 @@ import { useNavigate } from "react-router";
 import OpenTestToGroupModal from "../../components/modals/TestsModals/openTestToGroupModal/OpenTestToGroupModal";
 import OpenTestToUserModal from "../../components/modals/TestsModals/openTestToUserModal/OpenTestToUserModal";
 import ConfirmModal from "../../components/modals/confirmModal/ConfirmModal";
-
+import Message from "../../components/tableMessage/Message";
 import { $authHost } from "../../http";
 import CreateNewTest from "../../components/modals/TestsModals/createNewTest/CreateNewTest";
 import Loader from "../../components/UI/loader/Loader";
-import { useToast } from "../../context/ToastContext"; 
+import { useToast } from "../../context/ToastContext";
 
 export default function Tests() {
   const [dbTests, setDbTests] = useState([]);
@@ -26,11 +26,11 @@ export default function Tests() {
   const [isGroupModalOpen, setGroupModalOpen] = useState(false);
   const [isUserModalOpen, setUserModalOpen] = useState(false);
   const [isCreateTestModalOpen, setCreateTestModalOpen] = useState(false);
-  
+
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
   const [testToDelete, setTestToDelete] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   const navigate = useNavigate();
   const showToast = useToast();
 
@@ -126,12 +126,15 @@ export default function Tests() {
     try {
       await $authHost.delete(`api/test/${testToDelete.id}`);
       setDeleteModalOpen(false);
-      
+
       showToast("Тест успешно удален", "success");
       fetchTests();
     } catch (error) {
       console.error("Ошибка при удалении", error);
-      showToast(error.response?.data?.message || "Ошибка при удалении теста", "error");
+      showToast(
+        error.response?.data?.message || "Ошибка при удалении теста",
+        "error",
+      );
       setDeleteModalOpen(false);
     }
   };
@@ -145,12 +148,14 @@ export default function Tests() {
       await Promise.all(
         groupIds.map((groupId) => {
           const targetGroup = dbGroups.find((g) => g.id === groupId);
-          const newTests = Array.from(new Set([...targetGroup.tests, selectedTest.id]));
+          const newTests = Array.from(
+            new Set([...targetGroup.tests, selectedTest.id]),
+          );
           return $authHost.post("api/group/add-tests", {
             groupId: groupId,
             testIds: newTests,
           });
-        })
+        }),
       );
       setGroupModalOpen(false);
       showToast("Тест успешно назначен выбранным группам!", "success");
@@ -166,12 +171,14 @@ export default function Tests() {
       await Promise.all(
         userIds.map((userId) => {
           const targetUser = dbUsers.find((u) => u.id === userId);
-          const newTests = Array.from(new Set([...targetUser.openTests, selectedTest.id]));
+          const newTests = Array.from(
+            new Set([...targetUser.openTests, selectedTest.id]),
+          );
           return $authHost.post("api/user/add-tests", {
             userId: userId,
             testIds: newTests,
           });
-        })
+        }),
       );
       setUserModalOpen(false);
       showToast("Тест успешно назначен выбранным пользователям!", "success");
@@ -231,7 +238,7 @@ export default function Tests() {
     totalPages,
     paginatedData,
     handleSort,
-  } = useTable({ data: enrichedTests, columns });
+  } = useTable({ data: enrichedTests, columns, searchKeys: ["name"] });
 
   if (isLoading) {
     return (
@@ -252,14 +259,28 @@ export default function Tests() {
         </Button>
       </ToolBar>
 
-      <Table
-        data={paginatedData}
-        columns={columns}
-        onSort={handleSort}
-        sortKey={sortKey}
-        sortOrder={sortOrder}
-        onRowClick={handleRowClick}
-      />
+      {paginatedData.length > 0 ? (
+        <Table
+          data={paginatedData}
+          columns={columns}
+          onSort={handleSort}
+          sortKey={sortKey}
+          sortOrder={sortOrder}
+          onRowClick={handleRowClick}
+        />
+      ) : (
+        <Message>
+          {search
+            ? "По вашему запросу ничего не найдено. Попробуйте изменить параметры поиска."
+            : "У вас пока нет созданных тестов."}
+        </Message>
+
+        // <div >
+        //   {search
+        //     ? "По вашему запросу ничего не найдено. Попробуйте изменить параметры поиска."
+        //     : "У вас пока нет созданных тестов."}
+        // </div>
+      )}
 
       {totalPages > 1 && (
         <MyPagination totalPages={totalPages} page={page} setPage={setPage} />
@@ -288,7 +309,7 @@ export default function Tests() {
           fetchTests();
         }}
       />
-      
+
       <ConfirmModal
         open={isDeleteModalOpen}
         onClose={() => {

@@ -30,3 +30,41 @@ th{
 .clickableRow{
   cursor: pointer;
 }
+
+/* 
+.table {
+  width: 100%;
+  border: 1px solid #DDE1E6;
+  font-size: 14px;
+  font-weight: 500;
+  box-sizing: border-box;
+  border-collapse: separate; 
+  border-spacing: 0;
+  border-radius: 15px;
+  overflow: hidden; 
+}
+
+.wrapper {
+  padding-bottom: 12px;
+}
+
+.thead {
+  background-color: #F9F5EF;
+  text-align: left;
+}
+
+td, th {
+  padding: 12px 16px;
+}
+
+th {
+  cursor: pointer;
+}
+
+.tbody tr td {
+  border-top: 1px solid #DDE1E6;
+}
+
+.clickableRow {
+  cursor: pointer;
+} */

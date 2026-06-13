@@ -1,10 +1,10 @@
-import React, { useMemo, useState, useEffect } from "react";
-import { filterAndSort } from "../filtredSort";
+import { useMemo, useState, useEffect } from "react";
 
 export function useTable({
   data,
   columns,
   search: initialSearch = "",
+  searchKeys = [],
   pageSize = 10,
 }) {
   const [search, setSearch] = useState(initialSearch);
@@ -21,10 +21,43 @@ export function useTable({
     }
   };
 
-  const filteredData = useMemo(
-    () => filterAndSort({ data, columns, search, sortKey, sortOrder }),
-    [data, columns, search, sortKey, sortOrder],
-  );
+  const filteredData = useMemo(() => {
+    let result = [...data];
+
+    if (search.trim()) {
+      const lowerSearch = search.trim().toLowerCase();
+      result = result.filter((row) => {
+        if (searchKeys.length > 0) {
+          return searchKeys.some((key) =>
+            String(row[key] || "").toLowerCase().includes(lowerSearch)
+          );
+        }
+        return Object.values(row).some((val) =>
+          String(val || "").toLowerCase().includes(lowerSearch)
+        );
+      });
+    }
+
+    if (sortKey) {
+      result.sort((a, b) => {
+        const valA = a[sortKey];
+        const valB = b[sortKey];
+
+        if (valA == null) return sortOrder === "asc" ? 1 : -1;
+        if (valB == null) return sortOrder === "asc" ? -1 : 1;
+
+        if (typeof valA === "string" && typeof valB === "string") {
+          return sortOrder === "asc"
+            ? valA.localeCompare(valB)
+            : valB.localeCompare(valA);
+        }
+
+        return sortOrder === "asc" ? valA - valB : valB - valA;
+      });
+    }
+
+    return result;
+  }, [data, search, searchKeys, sortKey, sortOrder]);
 
   useEffect(() => setPage(1), [search, sortKey, sortOrder]);
 
