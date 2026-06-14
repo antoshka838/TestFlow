@@ -1,4 +1,4 @@
-const { TestResult, Test, User, Group, TestAccess } = require("../models/index");
+const { TestResult, Test, User, Group, TestAccess } = require("../models/index"); 
 
 class DashboardController {
   async getSummary(req, res) {
