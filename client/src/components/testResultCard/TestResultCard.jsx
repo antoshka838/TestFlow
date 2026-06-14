@@ -1,6 +1,6 @@
 import React from "react";
 import H2 from "../../components/UI/h2/H2";
-import classes from "./TestResultCard.module.css";
+import classes from "./testResultCard.module.css";
 
 const internalQuestions = {
   testTasksSeemedDifficult: "Моих текущих знаний было недостаточно для легкого прохождения теста:",
