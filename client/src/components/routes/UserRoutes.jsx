@@ -1,5 +1,5 @@
 import { Route, Routes, Navigate } from "react-router";
-import UserProfilePage from "../../pagesForUsers/userProfilePage/userProgilePage";
+import UserProfilePage from "../../pagesForUsers/userProfilePage/userProfilePage";
 import MainPage from "../../pagesForUsers/mainPage/MainPage";
 import ErrorPage from "../../pages/ErrorPage";
 import RespondentTestPage from "../../pagesForUsers/respondentTestPage/RespondentTestPage";
