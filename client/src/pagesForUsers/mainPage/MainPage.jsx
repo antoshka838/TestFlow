@@ -6,7 +6,7 @@ import Search from "../../components/UI/search/Search";
 import classes from "./style.module.css";
 import TestCard from "../../components/testCard/TestCard";
 import MyPagination from "../../components/UI/pagination/MyPagination";
-import UserResultModal from "../../components/modals/userResultModal/userResultModal";
+import UserResultModal from "../../components/modals/userResultModal/UserResultModal";
 import { $authHost } from "../../http";
 import { useTable } from "../../utils/hooks/useTable";
 import { MenuItem, Select } from "@mui/material";
