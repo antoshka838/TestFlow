@@ -1,4 +1,4 @@
-import classes from "./toolBar.module.css";
+import classes from "./toolbar.module.css";
 
 export default function ToolBar({ children }) {
   return (
